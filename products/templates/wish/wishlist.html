@@ -1,0 +1,24 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h3>Your Wishlist</h3>
+    <div class="row">
+        {% for item in wishlist_items %}
+        <div class="col-md-3">
+            <div class="card p-2">
+                <img src="{{ item.product.image.url }}" 
+                     style="height:150px; object-fit:contain;">
+                <h6>{{ item.product.name }}</h6>
+                <p>৳ {{ item.product.product_price }}</p>
+
+                <a href="{% url 'toggle_wishlist' item.product.id %}" 
+                   class="btn btn-danger btn-sm">
+                   Remove
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

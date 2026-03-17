@@ -1,0 +1,160 @@
+
+{% extends 'index.html' %}
+{% block title %}Products{% endblock %}
+{% block content %}
+
+<style>
+.wishlist-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: pointer;
+    background: none; /* no background */
+    border: none;     /* remove default a/button styles */
+    padding: 0;
+}
+
+.heart-icon {
+    fill: #333;         /* default grey/black */
+    transition: fill 0.3s ease;
+}
+
+.heart-icon.active {
+    fill: red;          /* active = red */
+}
+</style>
+
+<section id="category">
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+        <div class="section-header d-flex flex-wrap justify-content-between mb-5">
+            <h2 class="section-title">Category</h2>
+            <div class="d-flex align-items-center">
+            <a href="#" class="btn-link text-decoration-none">View All Categories →</a>
+            <div class="swiper-buttons">
+                <button class="swiper-prev category-carousel-prev btn btn-yellow">❮</button>
+                <button class="swiper-next category-carousel-next btn btn-yellow">❯</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+        <div class="category-carousel swiper">
+            <div class="swiper-wrapper">
+                <!-- All Category -->
+                <a href="{% url 'product_list' %}" 
+                    class="nav-link category-item swiper-slide 
+                    {% if not selected_category %}fw-bold text-primary{% endif %}"
+                    style="background-color: rgb(234, 240, 241);">
+                    <h3 class="mb-0">All</h3>
+                </a>
+
+                {% for category in categorys %}
+                <a href="{% url 'product_by_category' category.id %}" 
+                    class="nav-link category-item swiper-slide
+                    {% if selected_category == category.id %}fw-bold text-primary{% endif %}"
+                    style="background-color: rgb(234, 240, 241);">
+                    <h3 class="mb-0">{{ category.name }}</h3>
+                </a>
+                {% endfor %}
+
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+</section>
+    
+<!-- -------------------------------   Product ------------------------------  -->
+<section id="product">
+    <div class="containers m-5">
+        <h2 class="mb-4 text-center fw-bold">Our Products</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                <div class="card product-card border-0 shadow-sm h-100">
+                    
+                    <a href="{% url 'toggle_wishlist' product.id %}"
+                    class="wishlist-btn"
+                    data-id="{{ product.id }}">
+                        <svg class="heart-icon {% if product.id in wishlist_products %} active {% endif %}" 
+                            width="24" height="24" viewBox="0 0 24 24">
+                            <use xlink:href="#heart"></use>
+                        </svg>
+                    </a>
+
+                    <!-- Product Image -->
+                    <a href="{% url 'product_detail' product.id %}">
+                        <img src="{{ product.image.url }}"
+                            class="card-img-top product-image p-2">
+                    </a>
+                    <div class="card-body text-center">
+                        <!-- Product Name -->
+                        <h6 class="card-title mb-1">
+                            {{ product.name }}
+                        </h6>
+                        <!-- Price -->
+                        <p class="fw-semibold mb-3">
+                            ৳ {{ product.product_price }}
+                        </p>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="{% url 'product_detail' product.id %}"
+                            class="btn btn-sm btn-outline-dark w-50">
+                            View
+                            </a>
+                            <button class="btn btn-sm btn-primary add-to-cart w-50"
+                                    data-id="{{ product.id }}" data-url="{% url 'add_to_cart' product.id %}">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</section>
+
+
+
+
+{% endblock %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const svg = this.querySelector('.heart-icon');
+            const productId = this.dataset.id;
+
+            fetch(`/wishlist/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    svg.classList.add('active');
+                } else {
+                    svg.classList.remove('active');
+                }
+            });
+        });
+    });
+});
+</script>
+
+<!-- <a href="{% url 'toggle_wishlist' product.id %}" class="btn btn-default text-end">❤️</a> -->

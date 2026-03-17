@@ -1,0 +1,52 @@
+{% load static %}
+
+    
+
+    <div class="preloader-wrapper">
+      <div class="preloader">
+      </div>
+    </div>
+    
+    
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasSearch" aria-labelledby="Search">
+      <div class="offcanvas-header justify-content-center">
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="order-md-last">
+          <h4 class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-primary">Search</span>
+          </h4>
+          <form role="search" action="index.html" method="get" class="d-flex mt-3 gap-0">
+            <input class="form-control rounded-start rounded-0 bg-light" type="email" placeholder="What are you looking for?" aria-label="What are you looking for?">
+            <button class="btn btn-dark rounded-end rounded-0" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <template id="cart-item-template">
+      <tr class="cart-row">
+          <td>
+              <img class="item-image" style="width:50px;height:50px;object-fit:contain;" class="me-2">
+          </td>
+
+          <td class="item-name"></td>
+
+          <td>
+              <div class="d-flex align-items-center gap-1">
+                  <button class="btn btn-sm btn-outline-secondary decrement">-</button>
+                  <span class="item-quantity px-2"></span>
+                  <button class="btn btn-sm btn-outline-secondary increment">+</button>
+              </div>
+          </td>
+
+          <td class="item-price"></td>
+
+          <td>৳ <span class="item-subtotal"></span></td>
+
+          <td>
+              <button class="btn btn-sm btn-danger remove-item">&times;</button>
+          </td>
+      </tr>
+    </template>

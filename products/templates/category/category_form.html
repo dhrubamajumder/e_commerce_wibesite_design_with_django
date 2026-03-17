@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="card shadow-sm col-md-6 mx-auto">
+    <div class="card-body">
+        <h4 class="mb-3 text-success">
+            {% if is_update %}
+                Category Update
+            {% else %}
+                Add Product
+            {% endif %}
+            
+        </h4>
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" id="id_name" class="form-control" placeholder="Category Name" 
+                    value="{% if category %}{{ category.name }}{% endif %}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_description" class="form-label">Description</label>
+                <input type="text" name="description" id="id_description" class="form-control" placeholder="Category Description" 
+                    value="{% if category %}{{ category.description }}{% endif %}">
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-success">
+                    {% if is_update %}
+                        Update Category
+                    {% else %}
+                        Submit
+                    {% endif %}
+                    
+                </button>
+                <a href="{% url 'category_list' %}" class="btn btn-secondary"> < Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

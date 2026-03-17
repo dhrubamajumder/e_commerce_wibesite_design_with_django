@@ -1,0 +1,107 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<section id="product">
+    <div class="containers m-5">
+        <h2 class="mb-4 text-center fw-bold">Our Products</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                <div class="card product-card border-0 shadow-sm h-100">
+                    
+                    <!-- Wishlist Heart -->
+                    <a href="javascript:void(0);" 
+                       class="wishlist-btn" 
+                       data-id="{{ product.id }}" 
+                       data-url="{% url 'toggle_wishlist' product.id %}">
+                        <svg class="heart-icon {% if product.id in wishlist_products %} active {% endif %}" 
+                             width="24" height="24" viewBox="0 0 24 24">
+                            <use xlink:href="#heart"></use>
+                        </svg>
+                    </a>
+
+                    <!-- Product Image -->
+                    <a href="{% url 'product_detail' product.id %}">
+                        <img src="{{ product.image.url }}" class="card-img-top product-image p-2">
+                    </a>
+
+                    <!-- Product Details -->
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-1">{{ product.name }}</h6>
+                        <p class="fw-semibold mb-3">৳ {{ product.product_price }}</p>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-dark w-50">
+                                View
+                            </a>
+                            <button class="btn btn-sm btn-primary add-to-cart w-50"
+                                    data-id="{{ product.id }}" 
+                                    data-url="{% url 'add_to_cart' product.id %}">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Heart CSS -->
+    <style>
+        .heart-icon {
+            fill: none;
+            stroke: #000; /* Default color */
+            cursor: pointer;
+            transition: fill 0.3s, stroke 0.3s;
+        }
+
+        .heart-icon.active {
+            fill: red;
+            stroke: red;
+        }
+    </style>
+
+    <!-- Heart JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+
+            wishlistButtons.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const heart = this.querySelector('.heart-icon');
+                    const productId = this.dataset.id;
+                    const url = this.dataset.url;
+
+                    // Toggle heart color immediately
+                    heart.classList.toggle('active');
+
+                    // Update backend via AJAX
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ product_id: productId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Wishlist updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert heart if request fails
+                        heart.classList.toggle('active');
+                    });
+                });
+            });
+        });
+    </script>
+</section>
+
+
+{% endblock %}

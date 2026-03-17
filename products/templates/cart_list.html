@@ -1,0 +1,132 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+
+<div class="containers m-5">
+  <div class="row">
+    <!-- LEFT SIDE : CART ITEMS -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+            <h4 class="mb-3">Your Cart</h4>
+            <table class="table align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <!-- Image -->
+                    <td style="width:90px;">
+                    <img src="{{ item.product.image.url }}"
+                        style="width:70px;height:70px;object-fit:contain;"
+                        class="border rounded p-1">
+                    </td>
+                    <!-- Product Name -->
+                    <td>
+                      {{ item.product.name }}
+                    </td>
+                    <!-- Quantity -->
+                    <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <span>{{ item.quantity }}</span>
+                    </div>
+                    </td>
+                    <!-- Single Price -->
+                    <td>
+                        ৳ {{ item.product.product_price }}
+                    </td>
+                    <!-- Total Price -->
+                    <td class="text-end">
+                        ৳ {{ item.total_price }}
+                    </td>
+                    <td><form action="{% url 'remove_item' item.pk %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-danger p-0">Remove</button>
+                    </form></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <!-- Grand Total -->
+            <div class="text-end">
+                <h5>Total: ৳ {{ total }}</h5>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE : PAYMENT -->
+    <div class="col-md-6">
+      <div class="card p-4 shadow-sm">
+        <h5>Checkout Details</h5>
+        <hr>
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <!-- Full Name -->
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="full_name" class="form-control" required>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="01XXXXXXXXX" required>
+          </div>
+
+          <!-- Full Address -->
+          <div class="mb-3">
+            <label class="form-label">Full Address</label>
+            <textarea name="address" class="form-control" rows="3" required></textarea>
+          </div>
+
+          <!-- Delivery Date -->
+          <div class="mb-3">
+            <label class="form-label">Preferred Delivery Date</label>
+            <input type="date" name="delivery_date" class="form-control" required>
+          </div>
+
+          <hr>
+
+          <!-- Payment Method -->
+          <h6>Payment Method</h6>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="payment" value="cod" checked>
+            <label class="form-check-label">
+              Cash on Delivery
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="payment" value="bkash">
+            <label class="form-check-label">
+              bKash
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 mt-3">
+            Confirm Order
+          </button>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+{% endblock %}

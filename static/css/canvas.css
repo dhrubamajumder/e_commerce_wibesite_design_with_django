@@ -1,0 +1,121 @@
+
+/* body.offcanvas-active {
+    padding-top: 70px !important;
+} */
+
+.product-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.image-container {
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.product-image {
+  width: 100%;
+  height: 250px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #787878;
+}
+
+.add-cart-btn {
+    width: 100%;
+    border-radius: 8px;
+}
+
+
+/* ------------  Product View    --------- */
+
+#product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.product-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.image-container {
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.product-image {
+  width: 100%;
+  height: 250px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #787878;
+}
+
+.add-cart-btn {
+    width: 100%;
+    border-radius: 8px;
+}
+
+
+/* ------   Product   --------- */
+.product-table {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+}
+
+.product-table th {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.product-table td {
+    color: #333;
+}
+
+/* --------------   Offcanvas  ---------------- */
+
+#offcanvas-cart-items td, 
+#offcanvas-cart-items th {
+    font-size: 0.85rem; /* ছোট text */
+    vertical-align: middle;
+}
+
+#offcanvas-cart-items img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+#offcanvas-cart-items button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}

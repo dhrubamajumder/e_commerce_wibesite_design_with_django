@@ -1,0 +1,51 @@
+
+{% extends 'index.html' %}
+
+{% block content %}
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartCanvas">
+  <div class="offcanvas-header">
+    <h5>Your Cart</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    {% for item in cart_items %}
+    <div class="cart-item mb-3" id="item-{{ item.id }}">
+      
+      <h6>{{ item.product.name }}</h6>
+      <p>Price: ${{ item.product.price }}</p>
+
+      <div class="d-flex align-items-center">
+        <button class="btn btn-sm btn-danger qty-btn"
+                data-id="{{ item.id }}"
+                data-action="decrease">-</button>
+
+        <span class="mx-2" id="qty-{{ item.id }}">
+          {{ item.quantity }}
+        </span>
+
+        <button class="btn btn-sm btn-success qty-btn"
+                data-id="{{ item.id }}"
+                data-action="increase">+</button>
+      </div>
+
+      <p>Total: $
+        <span id="total-{{ item.id }}">
+          {{ item.total_price }}
+        </span>
+      </p>
+
+      <button class="btn btn-sm btn-outline-danger remove-btn"
+              data-id="{{ item.id }}">
+        Remove
+      </button>
+
+      <hr>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+
+{% endblock %}
