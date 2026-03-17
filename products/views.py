@@ -305,8 +305,7 @@ def cart_list(request):
 def cart_details_list(request):
     orders = Order.objects.filter(user=request.user).order_by('-id')
     for order in orders:
-        print(order.id, order.items.all())
-    return render(request, "product/cart_details_list.html", {"orders": orders})
+        return render(request, "product/cart_details_list.html", {"orders": orders})
 
 
 def offcanvas(request):

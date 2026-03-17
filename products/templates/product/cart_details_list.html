@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container my-5">
-    <h2 class="mb-4">Your Orders</h2>
+    <h2 class="mb-4 text-center">Orders Details</h2>
 
     {% if orders %}
         <div class="row g-3">
@@ -10,22 +10,31 @@
             <div class="col-6">
                 <div class="card shadow-sm p-2 mb-3">
                     <h5>Order #{{ forloop.counter }}</h5>
-                    <div class="d-flex align-items-center justify-content-between border rounded">
-                        <div class="d-flex align-items-center gap-2">
-                            <p class="mb-0">{{ order.address }}</p>
+                    <div class="background p-2 " style="background-color: rgb(255, 250, 244);">
+                        <div class="d-flex align-items-center justify-content-between border rounded">
+                            <div class="d-flex align-items-center gap-2">
+                                <p class="mb-0">{{ order.address }}</p>
+                            </div>
+                            <div>
+                                <strong>{{ order.phone }}</strong>
+                            </div>
                         </div>
-                        <div>
-                            <strong>{{ order.phone }}</strong>
+                        <div class="d-flex align-items-center justify-content-between border rounded">
+                            <div class="d-flex align-items-center gap-2">
+                                <p><small>Delivery Date:</small> <strong>{{ order.delivery_date }}</strong></p>
+                            </div>
+                            <div>
+                                <p class="text-end"><small>৳ </small><strong> {{ order.total_amount }}</strong></p>
+                            </div>
                         </div>
+                        
                     </div>
-                    <p><small>Delivery Date:</small> {{ order.delivery_date }}</p>
 
-                    <hr>
                     <div class="d-flex flex-column">
                         {% for item in order.items.all %}
                         <div class="d-flex align-items-center justify-content-between border rounded">
                             <!-- Product Image -->
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-1">
                                 {% if item.product.image %}
                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:50px; height:50px; object-fit:contain;">
                                 {% endif %}
@@ -33,12 +42,12 @@
                             </div>
                             <!-- Quantity × Price = Subtotal -->
                             <div>
-                                <small>৳ {{ item.price }} × {{ item.quantity }} = ৳ {{ item.get_subtotal }}</small>
+                                <!-- <small>৳ {{ item.price }} × {{ item.quantity }} = ৳ {{ item.get_subtotal }}</small> -->
+                                <small><small>৳ </small>{{ item.price }}</small><br>
+                                <small>Qty: {{ item.quantity }}</small>
                             </div>
                         </div>
                         {% endfor %}
-                        <hr>
-                        <p class="text-end"><small>Total Amount:</small> ৳ {{ order.total_amount }}</p>
                     </div>
                 </div>
             </div>
