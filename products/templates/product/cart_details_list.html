@@ -10,8 +10,8 @@
             <div class="col-6">
                 <div class="card shadow-sm p-2 mb-3">
                     <h5>Order #{{ forloop.counter }}</h5>
-                    <div class="background p-2 " style="background-color: rgb(255, 250, 244);">
-                        <div class="d-flex align-items-center justify-content-between border rounded">
+                    <div class="background p-2 " style="background-color: rgb(245, 245, 244);">
+                        <div class="d-flex align-items-center justify-content-between rounded p-2">
                             <div class="d-flex align-items-center gap-2">
                                 <p class="mb-0">{{ order.address }}</p>
                             </div>
@@ -19,7 +19,7 @@
                                 <strong>{{ order.phone }}</strong>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between border rounded">
+                        <div class="d-flex align-items-center justify-content-between rounded p-2">
                             <div class="d-flex align-items-center gap-2">
                                 <p><small>Delivery Date:</small> <strong>{{ order.delivery_date }}</strong></p>
                             </div>
@@ -32,7 +32,7 @@
 
                     <div class="d-flex flex-column">
                         {% for item in order.items.all %}
-                        <div class="d-flex align-items-center justify-content-between border rounded">
+                        <div class="d-flex align-items-center justify-content-between border rounded p-2">
                             <!-- Product Image -->
                             <div class="d-flex align-items-center gap-1">
                                 {% if item.product.image %}

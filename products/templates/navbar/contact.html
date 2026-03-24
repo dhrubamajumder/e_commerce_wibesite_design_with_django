@@ -1,0 +1,58 @@
+{% extends "index.html" %}
+
+{% block title %}
+Contact Us
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row">
+        
+        <!-- Contact Info -->
+        <div class="col-md-5 mb-4">
+            <h2>Contact Information</h2>
+            <p>We would love to hear from you. Reach out to us using the details below.</p>
+
+            <ul class="list-unstyled">
+                <li><strong>Address:</strong> 123 Main Street, Dhaka, Bangladesh</li>
+                <li><strong>Phone:</strong> +880-123456789</li>
+                <li><strong>Email:</strong> support@yourstore.com</li>
+                <li><strong>Business Hours:</strong> Sat - Thu (9:00 AM - 8:00 PM)</li>
+            </ul>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="col-md-7">
+            <h2>Send Us a Message</h2>
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Your Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Subject</label>
+                    <input type="text" name="subject" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea name="message" rows="5" class="form-control" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

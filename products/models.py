@@ -28,7 +28,7 @@ class Product(models.Model):
 
 # --------------------------- Cart ------------------------
 class Cart(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="carts")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="carts", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

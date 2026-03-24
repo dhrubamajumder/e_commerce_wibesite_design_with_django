@@ -15,14 +15,8 @@ urlpatterns = [
     path('product/<int:id>/', views.product_detail, name='product_detail'),
     path('content/', views.content, name='content'),
     
-    # path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/', views.cart_list, name='cart_list'),
     path('get-cart-items/', views.get_cart_items, name='get_cart_items'),
-    
-    # path('update-cart/<int:cart_id>/<str:action>/', views.update_cart, name='update_cart'),
-    # path('remove-cart/<int:cart_id>/', views.remove_from_cart, name='remove_cart'),
-    
-    # path('remove-from-cart/<int:cart_id>/', views.remove_from_cart, name='remove_from_cart'),
     
     path("cart-items-json/", views.cart_items_json, name="cart_items_json"),
     path('cart-details/', views.cart_details_list, name='cart_details_list'),
@@ -37,4 +31,12 @@ urlpatterns = [
     path("wishlist/", views.wishlist_view, name="wishlist"),
     
     path('wish/', views.wish, name='wish/'),
+    
+    path('ajax-search/', views.ajax_search, name='ajax_search'),
+    
+    path('about/', views.about, name="about"),
+    path('contact/', views.contact , name='contact'),
+    path('faq/', views.faq , name='faq'),
+    
+    path('profile/', views.profile, name='profile'),
 ]

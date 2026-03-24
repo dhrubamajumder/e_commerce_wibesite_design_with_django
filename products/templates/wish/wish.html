@@ -12,7 +12,7 @@
                     
                     <!-- Wishlist Heart -->
                     <a href="javascript:void(0);" 
-                       class="wishlist-btn" 
+                       class="wishlist-btn mb-2" 
                        data-id="{{ product.id }}" 
                        data-url="{% url 'toggle_wishlist' product.id %}">
                         <svg class="heart-icon {% if product.id in wishlist_products %} active {% endif %}" 

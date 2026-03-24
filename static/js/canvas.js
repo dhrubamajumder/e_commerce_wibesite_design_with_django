@@ -139,3 +139,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
+
+// ------------------------------------------------
+// ------------------------------------------------
+// ------------------------------------------------
+
+const searchInput = document.getElementById('search-input');
+const resultsBox = document.getElementById('search-results');
+
+searchInput.addEventListener('keyup', function() {
+    let query = this.value;
+
+    if (query.length < 1) {
+        resultsBox.innerHTML = "";
+        return;
+    }
+
+    fetch(`/ajax-search/?q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+
+            let html = "";
+
+            data.products.forEach(product => {
+                html += `
+                    <a href="/product/${product.id}/" class="d-block p-2 border-bottom text-dark text-decoration-none">
+                        <div class="d-flex align-items-center">
+                            <img src="${product.image}" width="40" class="me-2">
+                            <div>
+                                <div>${product.name}</div>
+                                <small>৳ ${product.price}</small>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+
+            resultsBox.innerHTML = html;
+        });
+});
+

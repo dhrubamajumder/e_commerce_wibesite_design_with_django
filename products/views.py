@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from .models import Product
 import json
+from django.db.models import Q
 
 # Create your views here.
 
@@ -36,16 +37,21 @@ def topbar_list(request, category_id=None):
     return render(request, 'navbar/topbar.html', context)
 
 # -------------------------------------------   Product Views  -------------------------------------
+
 def product_list(request, category_id=None):
     categorys = Category.objects.all()
-
+    search_query = request.GET.get('q')  
+    products = Product.objects.all()
+    # Category filter
     if category_id:
-        products = Product.objects.filter(
-            category_id=category_id
-        ).order_by('-id')
-    else:
-        products = Product.objects.all().order_by('-id')
-
+        products = products.filter(category_id=category_id)
+    # Search filter
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    products = products.order_by('-id')
     # ✅ Wishlist products (only if logged in)
     wishlist_products = []
     if request.user.is_authenticated:
@@ -57,10 +63,35 @@ def product_list(request, category_id=None):
         'products': products,
         'categorys': categorys,
         'selected_category': category_id,
-        'wishlist_products': wishlist_products
+        'wishlist_products': wishlist_products,
+        'search_query': search_query  
     }
 
     return render(request, 'product/product_list.html', context)
+
+
+
+def ajax_search(request):
+    query = request.GET.get('q')
+    products = []
+
+    if query:
+        results = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query)
+        )[:10]
+
+        for product in results:
+            products.append({
+                'id': product.id,
+                'name': product.name,
+                'price': str(product.price),
+                'image': product.image.url if product.image else ''
+            })
+
+    return JsonResponse({'products': products})
+
+
 
 
 def product(request):
@@ -106,34 +137,27 @@ def content(request):
 # -----------------------------     Cart      ------------------------------------------
 # --------------------------------------------------------------------------------------
 
-@login_required
 def update_cart(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         data = json.loads(request.body)
-        item_id = data.get('item_id')
-        action = data.get('action')
+        item_id = str(data.get("item_id"))
+        action = data.get("action")
 
-        try:
-            cart_item = CartItem.objects.get(
+        # ---------------- LOGGED IN ----------------
+        if request.user.is_authenticated:
+            cart_item = get_object_or_404(
+                CartItem,
                 id=item_id,
                 cart__user=request.user
             )
 
-            if action == 'inc':
+            if action == "inc":
                 cart_item.quantity += 1
-
-            elif action == 'dec':
-                if cart_item.quantity > 1:
-                    cart_item.quantity -= 1
-                else:
+            elif action == "dec":
+                cart_item.quantity -= 1
+                if cart_item.quantity <= 0:
                     cart_item.delete()
-                    return JsonResponse({
-                        "status": "success",
-                        "quantity": 0,
-                        "subtotal": 0,
-                        "cart_count": cart_item.cart.items.count(),
-                        "cart_total": float(cart_item.cart.get_total_price())
-                    })
+                    return JsonResponse({"status": "success", "quantity": 0})
 
             cart_item.save()
 
@@ -145,87 +169,201 @@ def update_cart(request):
                 "cart_total": float(cart_item.cart.get_total_price())
             })
 
-        except CartItem.DoesNotExist:
-            return JsonResponse({"status": "fail"})
+        # ---------------- GUEST ----------------
+        else:
+            cart = request.session.get('cart', {})
+
+            if item_id in cart:
+                if action == "inc":
+                    cart[item_id] += 1
+                elif action == "dec":
+                    cart[item_id] -= 1
+                    if cart[item_id] <= 0:
+                        del cart[item_id]
+                        request.session['cart'] = cart
+                        return JsonResponse({"status": "success", "quantity": 0})
+
+            request.session['cart'] = cart
+            request.session.modified = True
+
+            product = Product.objects.get(id=item_id)
+            quantity = cart.get(item_id, 0)
+            subtotal = product.product_price * quantity
+
+            cart_total = 0
+            for pid, qty in cart.items():
+                p = Product.objects.get(id=pid)
+                cart_total += p.product_price * qty
+
+            return JsonResponse({
+                "status": "success",
+                "quantity": quantity,
+                "subtotal": float(subtotal),
+                "cart_count": sum(cart.values()),
+                "cart_total": float(cart_total)
+            })
+
+    return JsonResponse({"status": "fail"})
+
+
+def remove_item(request, pk):
+
+    # Logged in
+    if request.user.is_authenticated:
+        item = CartItem.objects.filter(
+            id=pk,
+            cart__user=request.user
+        ).first()
+
+        if item:
+            cart = item.cart
+            item.delete()
+
+            return JsonResponse({
+                "status": "success",
+                "cart_count": cart.items.count(),
+                "cart_total": float(cart.get_total_price())
+            })
+
+    # Guest
+    else:
+        cart = request.session.get('cart', {})
+        product_id = str(pk)
+
+        if product_id in cart:
+            del cart[product_id]
+
+        request.session['cart'] = cart
+        request.session.modified = True
+
+        total = 0
+        for pid, qty in cart.items():
+            p = Product.objects.get(id=pid)
+            total += p.product_price * qty
+
+        return JsonResponse({
+            "status": "success",
+            "cart_count": sum(cart.values()),
+            "cart_total": float(total)
+        })
 
     return JsonResponse({"status": "fail"})
 
 
 
-@login_required
-def remove_item(request, pk):
-    if request.method == "POST":
-        # Only delete items that belong to the user's cart
-        item = CartItem.objects.filter(id=pk, cart__user=request.user).first()
-        if not item:
-            return JsonResponse({"status": "fail", "message": "Item does not exist"}, status=404)
-
-        item.delete()
-
-        cart = item.cart
-        cart_total = sum(ci.total_price() for ci in cart.items.all())
-
-        return JsonResponse({
-            "status": "success",
-            "cart_count": cart.items.count(),
-            "cart_total": f"{cart_total:.2f}"
-        })
-
-    return JsonResponse({"status": "fail"}, status=400)
-
-
-
-@login_required
 def add_to_cart(request, pk):
     product = get_object_or_404(Product, id=pk)
+    # ---------------- LOGGED IN USER ----------------
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
 
-    # Get the latest cart for the user or create one
-    cart = Cart.objects.filter(user=request.user).order_by('-created_at').first()
-    if not cart:
-        cart = Cart.objects.create(user=request.user)
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            defaults={'quantity': 1}
+        )
 
-    # Add or update the cart item
-    cart_item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        defaults={'quantity': 1}
-    )
-    if not created:
-        cart_item.quantity += 1
-        cart_item.save()
+        if not created:
+            cart_item.quantity += 1
+            cart_item.save()
+
+        quantity = cart_item.quantity
+        subtotal = cart_item.total_price()
+        cart_count = cart.items.count()
+        cart_total = cart.get_total_price()
+
+        item_id = cart_item.id   # DB item id
+
+    # ---------------- GUEST USER ----------------
+    else:
+        cart = request.session.get('cart', {})
+
+        product_id = str(pk)
+
+        if product_id in cart:
+            cart[product_id] += 1
+        else:
+            cart[product_id] = 1
+
+        request.session['cart'] = cart
+        request.session.modified = True
+
+        quantity = cart[product_id]
+        subtotal = product.product_price * quantity
+
+        cart_count = sum(cart.values())
+
+        cart_total = 0
+        for pid, qty in cart.items():
+            p = Product.objects.get(id=pid)
+            cart_total += p.product_price * qty
+
+        item_id = product.id  
 
     return JsonResponse({
-        "id": cart_item.id,
+        "id": item_id,
         "name": product.name,
         "price": float(product.product_price),
         "image": product.image.url if product.image else "",
-        "quantity": cart_item.quantity,
-        "subtotal": float(cart_item.total_price()),
-        "cart_count": cart.items.count(),
-        "cart_total": float(cart.get_total_price()),
+        "quantity": quantity,
+        "subtotal": float(subtotal),
+        "cart_count": cart_count,
+        "cart_total": float(cart_total),
     })
     
     
-    
-@login_required
 def get_cart_items(request):
-    # Get the cart for this user
-    cart = Cart.objects.filter(user=request.user).first()
-    if not cart:
-        return JsonResponse([], safe=False)  # empty list if no cart exists
+    items = []
+    cart_total = 0
+    cart_count = 0
 
-    cart_items = CartItem.objects.filter(cart=cart)
+    # 🔹 Logged in user
+    if request.user.is_authenticated:
+        cart = Cart.objects.filter(user=request.user).first()
 
-    items = [{
-        "id": item.id,
-        "name": item.product.name,
-        "price": float(item.product.product_price),
-        "image": item.product.image.url if item.product.image else "",
-        "quantity": item.quantity,
-        "subtotal": float(item.total_price())
-    } for item in cart_items]
+        if cart:
+            cart_items = CartItem.objects.filter(cart=cart)
 
-    return JsonResponse(items, safe=False)
+            for item in cart_items:
+                subtotal = item.total_price()
+                cart_total += subtotal
+                cart_count += item.quantity
+
+                items.append({
+                    "id": item.id,  # CartItem id
+                    "name": item.product.name,
+                    "price": float(item.product.product_price),
+                    "image": item.product.image.url if item.product.image else "",
+                    "quantity": item.quantity,
+                    "subtotal": float(subtotal)
+                })
+
+    # 🔹 Guest user (session cart)
+    else:
+        cart = request.session.get('cart', {})
+
+        for product_id, quantity in cart.items():
+            product = Product.objects.get(id=product_id)
+
+            subtotal = product.product_price * quantity
+            cart_total += subtotal
+            cart_count += quantity
+
+            items.append({
+                "id": product.id,
+                "name": product.name,
+                "price": float(product.product_price),
+                "image": product.image.url if product.image else "",
+                "quantity": quantity,
+                "subtotal": float(subtotal)
+            })
+
+    return JsonResponse({
+        "items": items,
+        "cart_total": float(cart_total),
+        "cart_count": cart_count
+    })
+            
 
 
 def cart_items_json(request):
@@ -247,9 +385,10 @@ def cart_items_json(request):
         "grand_total": grand_total
     })
 
-
 def cart_list(request):
-    # ইউজারের কার্ট আইটেমগুলো নিয়ে আসা
+    if not request.user.is_authenticated:
+        return render(request, "auths/login_required_message.html")
+
     cart_items = CartItem.objects.filter(cart__user=request.user)
     total = sum(item.total_price() for item in cart_items)
 
@@ -264,7 +403,6 @@ def cart_list(request):
             messages.warning(request, "Your cart is empty!")
             return redirect("cart_list")
 
-        # 1️⃣ Order তৈরি
         order = Order.objects.create(
             user=request.user,
             full_name=full_name,
@@ -275,7 +413,6 @@ def cart_list(request):
             total_amount=total
         )
 
-        # 2️⃣ Cart এর প্রতিটি item কে OrderItem হিসেবে যোগ করা
         order_items = []
         for item in cart_items:
             order_items.append(OrderItem(
@@ -286,7 +423,6 @@ def cart_list(request):
             ))
         OrderItem.objects.bulk_create(order_items)
 
-        # 3️⃣ Cart খালি করা
         cart_items.delete()
 
         messages.success(request, "Order placed successfully!")
@@ -296,18 +432,19 @@ def cart_list(request):
         "cart_items": cart_items,
         "total": total
     })
-    
 
 # def cart_details_list(request):
 #     orders = Order.objects.filter(user=request.user).order_by('id')
 #     return render(request, "product/cart_details_list.html", {"orders": orders})
 
+@login_required
 def cart_details_list(request):
     orders = Order.objects.filter(user=request.user).order_by('-id')
     for order in orders:
         return render(request, "product/cart_details_list.html", {"orders": orders})
 
 
+@login_required
 def offcanvas(request):
     return render(request, 'product/offcanvas.html')
 
@@ -328,10 +465,26 @@ def toggle_wishlist(request, product_id):
 @login_required
 def wishlist_view(request):
     wishlist_items = Wishlist.objects.filter(user=request.user)
-    return render(request, "wish/wishlist.html", {"wishlist_items": wishlist_items})
+    products = Product.objects.all()
+    return render(request, "wish/wishlist.html", {"wishlist_items": wishlist_items, "products":products})
 
 
 
 def wish(request):
     products = Product.objects.all()
     return render(request, 'wish/wish.html', {'products':products})
+
+
+# --------------------------------------------  Footer  -------------------------------
+
+def about(request):
+    return render(request, 'navbar/about.html')
+
+def contact(request):
+    return render(request, 'navbar/contact.html')
+
+def faq(request):
+    return render(request, 'navbar/faq.html')
+
+def profile(request):
+    return render(request, 'navbar/profile.html')
