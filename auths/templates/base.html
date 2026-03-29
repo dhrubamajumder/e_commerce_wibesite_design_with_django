@@ -1,0 +1,45 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>eCommerce Grocery Store HTML Website Template</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="author" content="">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="update-cart-url" content="{% url 'update_cart' %}">
+    <meta name="remove-item-base-url" content="{% url 'remove_item' 0 %}">    
+    
+    {% include "link/css.html" %}
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+
+
+  </head>
+  <body>
+
+    {% include 'navbar/svg.html' %}
+    <header>
+      {% include 'navbar/cart.html' %}
+      {% include 'navbar/topbar.html' %}      
+      {% include 'navbar/sidebar.html' %}      
+    </header>
+   
+
+    <div class="main-content mt-4 mb-4">
+      {% block content %}{% endblock %}
+    </div>
+
+    
+    <footer class="mt-4">
+      {% include 'navbar/footer.html' %}
+    </footer>
+    {% include 'link/js.html' %}
+  </body>
+</html>
+

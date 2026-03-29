@@ -8,8 +8,30 @@ from django.core.paginator import Paginator
 from .models import Product
 import json
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required, user_passes_test
 
-# Create your views here.
+
+
+
+def dashboard_redirect(request):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('admin_dashboard')
+        else:
+            return redirect('product_list')
+    return redirect('login')
+
+
+@login_required
+def user_dashboard(request):
+    return render(request, 'product/product_list.html')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_dashboard(request):
+    return render(request, 'base.html')
+
 
 def category_list(request):
     categories = Category.objects.all()
@@ -22,6 +44,7 @@ def category_create(request):
         Category.objects.create(name=name, description=description)
         return redirect('category_list')
     return render(request, 'category/category_form.html')
+
 
 def topbar_list(request, category_id=None):
     categorys = Category.objects.all()
@@ -37,7 +60,6 @@ def topbar_list(request, category_id=None):
     return render(request, 'navbar/topbar.html', context)
 
 # -------------------------------------------   Product Views  -------------------------------------
-
 def product_list(request, category_id=None):
     categorys = Category.objects.all()
     search_query = request.GET.get('q')  
@@ -58,7 +80,7 @@ def product_list(request, category_id=None):
         wishlist_products = Wishlist.objects.filter(
             user=request.user
         ).values_list('product_id', flat=True)
-
+        
     context = {
         'products': products,
         'categorys': categorys,
@@ -138,115 +160,113 @@ def content(request):
 # --------------------------------------------------------------------------------------
 
 def update_cart(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        item_id = str(data.get("item_id"))
-        action = data.get("action")
+    if request.method != "POST":
+        return JsonResponse({"status": "fail"})
 
-        # ---------------- LOGGED IN ----------------
-        if request.user.is_authenticated:
-            cart_item = get_object_or_404(
-                CartItem,
-                id=item_id,
-                cart__user=request.user
-            )
+    data = json.loads(request.body)
+    item_id = str(data.get("item_id"))
+    action = data.get("action")
 
-            if action == "inc":
-                cart_item.quantity += 1
-            elif action == "dec":
-                cart_item.quantity -= 1
-                if cart_item.quantity <= 0:
-                    cart_item.delete()
-                    return JsonResponse({"status": "success", "quantity": 0})
+    # ================== লগইনকৃত ব্যবহারকারী ==================
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_item, created = CartItem.objects.get_or_create(
+            id=item_id,
+            cart=cart,
+            defaults={'quantity': 0}
+        )
 
-            cart_item.save()
+        if action == "inc":
+            cart_item.quantity += 1
+        elif action == "dec":
+            cart_item.quantity -= 1
+            if cart_item.quantity <= 0:
+                cart_item.delete()
+                return JsonResponse({
+                    "status": "success",
+                    "quantity": 0,
+                    "cart_count": cart.items.count(),
+                    "cart_total": float(cart.get_total_price())
+                })
+        cart_item.save()
 
-            return JsonResponse({
-                "status": "success",
-                "quantity": cart_item.quantity,
-                "subtotal": float(cart_item.total_price()),
-                "cart_count": cart_item.cart.items.count(),
-                "cart_total": float(cart_item.cart.get_total_price())
-            })
+        return JsonResponse({
+            "status": "success",
+            "quantity": cart_item.quantity,
+            "subtotal": float(cart_item.total_price()),
+            "cart_count": cart.items.count(),
+            "cart_total": float(cart.get_total_price())
+        })
 
-        # ---------------- GUEST ----------------
-        else:
-            cart = request.session.get('cart', {})
+    # ================== লগইন ছাড়া ব্যবহারকারী ==================
+    else:
+        cart = request.session.get("cart", {})
 
+        if action == "inc":
             if item_id in cart:
-                if action == "inc":
-                    cart[item_id] += 1
-                elif action == "dec":
-                    cart[item_id] -= 1
-                    if cart[item_id] <= 0:
-                        del cart[item_id]
-                        request.session['cart'] = cart
-                        return JsonResponse({"status": "success", "quantity": 0})
+                cart[item_id] += 1
+            else:
+                cart[item_id] = 1  # নতুন প্রোডাক্ট যোগ
+        elif action == "dec":
+            if item_id in cart:
+                cart[item_id] -= 1
+                if cart[item_id] <= 0:
+                    del cart[item_id]
 
-            request.session['cart'] = cart
-            request.session.modified = True
+        request.session["cart"] = cart
+        request.session.modified = True
 
-            product = Product.objects.get(id=item_id)
-            quantity = cart.get(item_id, 0)
-            subtotal = product.product_price * quantity
+        # subtotal এবং cart total হিসাব
+        product = Product.objects.get(id=item_id)
+        quantity = cart.get(item_id, 0)
+        subtotal = product.product_price * quantity
 
-            cart_total = 0
-            for pid, qty in cart.items():
-                p = Product.objects.get(id=pid)
-                cart_total += p.product_price * qty
+        cart_total = 0
+        for pid, qty in cart.items():
+            p = Product.objects.get(id=pid)
+            cart_total += p.product_price * qty
 
-            return JsonResponse({
-                "status": "success",
-                "quantity": quantity,
-                "subtotal": float(subtotal),
-                "cart_count": sum(cart.values()),
-                "cart_total": float(cart_total)
-            })
-
-    return JsonResponse({"status": "fail"})
-
+        return JsonResponse({
+            "status": "success",
+            "quantity": quantity,
+            "subtotal": float(subtotal),
+            "cart_count": sum(cart.values()),
+            "cart_total": float(cart_total)
+        })
+        
 
 def remove_item(request, pk):
-
     # Logged in
     if request.user.is_authenticated:
         item = CartItem.objects.filter(
             id=pk,
             cart__user=request.user
         ).first()
-
         if item:
             cart = item.cart
             item.delete()
-
             return JsonResponse({
                 "status": "success",
                 "cart_count": cart.items.count(),
                 "cart_total": float(cart.get_total_price())
             })
-
     # Guest
     else:
         cart = request.session.get('cart', {})
         product_id = str(pk)
-
         if product_id in cart:
             del cart[product_id]
-
         request.session['cart'] = cart
         request.session.modified = True
-
         total = 0
         for pid, qty in cart.items():
             p = Product.objects.get(id=pid)
             total += p.product_price * qty
-
         return JsonResponse({
             "status": "success",
             "cart_count": sum(cart.values()),
             "cart_total": float(total)
         })
-
     return JsonResponse({"status": "fail"})
 
 
@@ -256,50 +276,38 @@ def add_to_cart(request, pk):
     # ---------------- LOGGED IN USER ----------------
     if request.user.is_authenticated:
         cart, created = Cart.objects.get_or_create(user=request.user)
-
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             product=product,
             defaults={'quantity': 1}
         )
-
         if not created:
             cart_item.quantity += 1
             cart_item.save()
-
         quantity = cart_item.quantity
         subtotal = cart_item.total_price()
         cart_count = cart.items.count()
         cart_total = cart.get_total_price()
-
         item_id = cart_item.id   # DB item id
 
     # ---------------- GUEST USER ----------------
     else:
         cart = request.session.get('cart', {})
-
         product_id = str(pk)
-
         if product_id in cart:
             cart[product_id] += 1
         else:
             cart[product_id] = 1
-
         request.session['cart'] = cart
         request.session.modified = True
-
         quantity = cart[product_id]
         subtotal = product.product_price * quantity
-
         cart_count = sum(cart.values())
-
         cart_total = 0
         for pid, qty in cart.items():
             p = Product.objects.get(id=pid)
             cart_total += p.product_price * qty
-
         item_id = product.id  
-
     return JsonResponse({
         "id": item_id,
         "name": product.name,
@@ -449,25 +457,44 @@ def offcanvas(request):
     return render(request, 'product/offcanvas.html')
 
 
-@login_required
+
 def toggle_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    wishlist_item, created = Wishlist.objects.get_or_create(
-        user=request.user,
-        product=product
-    )
+    if request.user.is_authenticated:
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            product=product
+        )
+    else:
+        # Ensure session exists
+        if not request.session.session_key:
+            request.session.create()
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            session_key=request.session.session_key,
+            product=product
+        )
     if not created:
         wishlist_item.delete()
-        
     return redirect(request.META.get('HTTP_REFERER', 'product_list'))
 
 
-@login_required
 def wishlist_view(request):
-    wishlist_items = Wishlist.objects.filter(user=request.user)
-    products = Product.objects.all()
-    return render(request, "wish/wishlist.html", {"wishlist_items": wishlist_items, "products":products})
 
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=request.user)
+    else:
+        if not request.session.session_key:
+            request.session.create()
+
+        wishlist_items = Wishlist.objects.filter(
+            session_key=request.session.session_key
+        )
+
+    return render(
+        request,
+        "wish/wishlist.html",
+        {"wishlist_items": wishlist_items}
+    )
 
 
 def wish(request):

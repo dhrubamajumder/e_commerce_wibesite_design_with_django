@@ -21,26 +21,28 @@ def register_view(request):
     return render(request, 'auths/register.html', {'form': form})
 
 
-
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             login(request, user)
-            return redirect('product_list')
+
+            if user.is_staff:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('product_list')
+
         else:
             error = "Invalid username or password"
-            return render(request, 'auths/login.html', {'error':error})
+            return render(request, 'auths/login.html', {'error': error})
+
     return render(request, 'auths/login.html')
 
 
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-
-def home(request):
-    return render(request, 'index.html')
-

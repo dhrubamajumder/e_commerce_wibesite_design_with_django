@@ -33,25 +33,56 @@
       </div>
     </div>
     
-
     <!-- Cart and user icons -->
     <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-3 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
       <ul class="d-flex justify-content-end list-unstyled m-0 align-items-center">
-        <li>
-          <a href="{% url 'wishlist' %}" class="rounded-circle bg-light p-2 mx-1">
-            <svg width="24" height="24" viewBox="0 0 24 24"><use xlink:href="#heart"></use></svg>
+        <li class="position-relative">
+          <a href="{% url 'wishlist' %}" class="rounded-circle bg-light p-2 mx-1 position-relative">
+            
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <use xlink:href="#heart"></use>
+            </svg>
+
+            {% if wishlist_count > 0 %}
+            <span id="wishlist-count"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ wishlist_count }}
+            </span>
+            {% endif %}
+
           </a>
         </li>
 
         <li class="dropdown">
-          <a href="#" class="rounded-circle bg-light p-2 mx-1" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <svg width="24" height="24" viewBox="0 0 24 24"><use xlink:href="#user"></use></svg>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li><a class="dropdown-item" href="{% url 'profile' %}">Your Profile</a></li>
-            <li><a class="dropdown-item" href="{% url 'cart_details_list' %}">Your Orders</a></li>
-            <li><a class="btn btn-outline-danger d-flex justify-content-center" href="{% url 'logout' %}">Log Out</a></li>
-          </ul>
+          {% if user.is_authenticated %}
+          
+            <a href="#" class="rounded-circle bg-light p-2 mx-1" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use xlink:href="#user"></use>
+              </svg>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li>
+                <a class="dropdown-item" href="{% url 'profile' %}">Your Profile</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'cart_details_list' %}">Your Orders</a>
+              </li>
+              <li>
+                <a class="btn btn-outline-danger d-flex justify-content-center" href="{% url 'logout' %}">
+                  Log Out
+                </a>
+              </li>
+            </ul>
+
+          {% else %}
+
+            <a href="{% url 'login' %}" class="btn btn-outline-primary mx-1">
+              Sign In
+            </a>
+
+          {% endif %}
         </li>
       </ul>
 
@@ -99,4 +130,44 @@ input.addEventListener("keyup", function() {
     this.form.submit();
   }, 500);
 });
-</script>
+</script>  
+
+
+
+{% comment %} 
+ <div class="container-fluid fixed-top bg-white shadow-sm topbar">
+    <div class="row align-items-center border-bottom">
+
+        <!-- Mobile Toggle -->
+        <div class="col-2 d-lg-none text-start">
+            <button class="btn btn-light" id="sidebarToggle">☰</button>
+        </div>
+
+        <!-- Logo -->
+        <div class="col-6 col-lg-3 text-center text-lg-start">
+            <a href="{% url 'product_list' %}">
+                <img src="{% static 'images/django.png' %}"
+                     style="max-height: 70px;"
+                     class="img-fluid">
+            </a>
+        </div>
+
+        <!-- Right Side -->
+        <div class="col-4 col-lg-9 d-flex justify-content-end align-items-center gap-3">
+
+            <a href="{% url 'wishlist' %}" class="btn btn-light">❤</a>
+
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                    User
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div> {% endcomment %}

@@ -82,15 +82,20 @@ class OrderItem(models.Model):
     
     
 class Wishlist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist", null=True,blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'product')  
+        unique_together = (
+            ('user', 'product'),
+            ('session_key', 'product'),
+        )
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name}"
-
+        if self.user:
+            return f"{self.user.username} - {self.product.name}"
+        return f"Guest - {self.product.name}"
 
 

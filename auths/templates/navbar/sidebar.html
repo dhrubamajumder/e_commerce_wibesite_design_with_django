@@ -1,0 +1,32 @@
+{% load static %}
+
+
+<div id="sidebar">
+    <ul class="nav flex-column">
+
+        <li>
+            <a class="nav-link" href="{% url 'product_list' %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a class="nav-link" href="{% url 'category_list' %}">
+                Categories
+            </a>
+        </li>
+
+        <li>
+            <a class="nav-link" href="{% url 'product' %}">
+                Products
+            </a>
+        </li>
+
+        <li>
+            <a class="nav-link" href="{% url 'cart_list' %}">
+                Orders
+            </a>
+        </li>
+
+    </ul>
+</div>
