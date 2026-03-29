@@ -1,30 +1,30 @@
 {% extends 'base.html' %}
-{% block title %}Products{% endblock %}
+{% block title %}Supplier Payment List{% endblock %}
+
 {% block content %}
 
-
-<!-- ALERT MESSAGE -->
-{% if messages %}
-<div class="container mt-3">
-    {% for message in messages %}
-        <div class="alert alert-success alert-dismissible fade show">
-            {{ message }}
-            <button class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
+<style>
+    .table>:not(caption)>*>* {
+    padding: .2rem;
+    }
+</style>
+<div class="text m-3">
+    <a href="{% url 'dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>Supplier Payments</b></span>
 </div>
-{% endif %}
 
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="text-dark" style="font-family: 'Roboto', sans-serif;">Product List</h3>
-                <a href="{% url 'product_create' %}" class="btn btn-primary">
-                   + Add Product
-                </a>
-           </div> <hr>
-           <form method="get" class="d-inline-block mb-3">
+                <h3>Supplier Payment List</h3>
+                {% if request.user.is_superuser or 'supplier_payment_create' in permissions_list %}
+                <a href="{% url 'supplier_payment_create' %}" class="btn btn-primary">➕ Add Supplier Payment</a>
+                {% endif %}
+            </div>  <hr>
+
+            <form method="get" class="d-inline-block mb-4">
                 <label>Data per page: </label>
                 <select name="per_page" onchange="this.form.submit()">
                     <option value="5" {% if per_page|add:'0' == 5 %}selected{% endif %}>5</option>
@@ -34,39 +34,28 @@
                 </select>
             </form>
 
-            <table class="table table-hover align-middle product-table">
-                <thead class="table-primary">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light align-middle">
                     <tr>
-                        <th>#</th>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Product Price</th>
-                        <th>Purchase Price</th>
-                        <th>Description</th>
-                        <th class="text-center">Created</th>
+                        <th class="p-2">#</th>
+                        <th>Supplier</th>
+                        <th>Fund</th>
+                        <th>Amount</th>
+                        <th>Note</th>
+                        {% if permissions_list and 'supplier_payment_update' in permissions_list or permissions_list and 'supplier_payment_delete' in permissions_list %}
                         <th class="text-end">Actions</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% for product in products %}
+                    {% for exp in page_obj %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" width="50">
-                            {% else %}
-                                <span class="text-muted">No image</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.category }}</td>
-                        
-                        <td>৳{{ product.product_price }}</td>
-                        <td>৳{{ product.purchase_price }}</td>
-                        
-                        <td>{{ product.description|default:"-" }}</td>
-                        <td class="text-center">{{ product.created_at|date:"Y-m-d" }}</td>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td>{{ exp.supplier.name }}</td>
+                        <td>{{ exp.fund.fund_name }}</td>
+                        <td>{{ exp.amount }}</td>
+                        <td>{{ exp.note|default:"-" }}</td>
+                        {% if permissions_list and 'supplier_payment_update' in permissions_list or permissions_list and 'supplier_payment_delete' in permissions_list %}
                         <td class="text-end">
                             <div class="dropdown">
                                 <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
@@ -74,38 +63,36 @@
                                 </button>
 
                                 <ul class="dropdown-menu dropdown-menu-end">
+                                    {% if permissions_list and 'supplier_payment_update' in permissions_list %}
                                     <li>
-                                        <a class="dropdown-item" href="#">
+                                        <a class="dropdown-item" href="{% url 'payment_update' exp.id %}">
                                             ✏️ Edit
                                         </a>
                                     </li>
-
+                                    {% endif %}
+                                    {% if permissions_list and 'supplier_payment_delete' in permissions_list %}
+                                     
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'product_detail' product.id %}">
-                                            👁️ View
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <form method="post" action="#" onsubmit="return confirm('Are you sure you want to delete this Product?');">
+                                        <form method="post" action="{% url 'payment_delete' exp.id %}" onsubmit="return confirm('Are you sure you want to delete this Supplier Payment?');">
                                             {% csrf_token %}
                                             <button type="submit" class="dropdown-item text-danger">🗑️ Delete </button>
                                         </form>
                                     </li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center text-muted">
-                            No products found
-                        </td>
+                        <td colspan="7" class="text-center">No expenses found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <!-- Pagination -->
+
+            <!-- Pagination Controls -->
             <nav>
                 <ul class="pagination justify-content-end mt-3">
                     {% if page_obj.has_previous %}
@@ -133,9 +120,7 @@
                     {% endif %}
                 </ul>
             </nav>
-
         </div>
     </div>
 </div>
-
 {% endblock %}

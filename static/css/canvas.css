@@ -119,3 +119,9 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
 }
+
+.wishlist-badge {
+    background-color: red !important;
+    color: white;
+}
+

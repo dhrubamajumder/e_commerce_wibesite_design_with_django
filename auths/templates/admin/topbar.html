@@ -1,0 +1,20 @@
+
+{% load static %}
+
+ 
+<!-- Topbar -->
+<div class="topbar" id="topbar">
+    <button class="btn btn-light me-3" id="toggleBtn">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="ms-auto dropdown">
+      <i class="bi bi-person-circle dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" style="font-size: 1.5rem; cursor: pointer;"></i>
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+          <li><a class="dropdown-item text-center" href="{% url 'profile' %}">Profile</a></li>
+          <li><a class="dropdown-item text-center" onclick="return confirm('Are you sure you want to logout?');" href="{% url 'logout' %}">Logout</a></li>
+      </ul>
+  </div>
+</div>  
+
+

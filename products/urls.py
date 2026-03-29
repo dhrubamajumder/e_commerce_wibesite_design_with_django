@@ -6,7 +6,7 @@ from . import views
 urlpatterns = [
     
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
-    path('dashboards/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboards/', views.admin_dashboard, name='admin_dashboard'),
     
     path('category/list/', views.category_list, name='category_list'),
     path('category/create/', views.category_create, name='category_create'),
@@ -43,4 +43,12 @@ urlpatterns = [
     path('faq/', views.faq , name='faq'),
     
     path('profile/', views.profile, name='profile'),
+    
+    path('demo/', views.demo, name='demo'),
+    
+    path('supplier/', views.supplier_list, name='supplier'),
+    path('supplier/create/', views.supplier_create, name='supplier_create'),
+    path('supplier/<int:id>/', views.supplier_update, name='supplier_update'),
+    path('supplier/<int:id>/delete/', views.supplier_delete, name='supplier_delete'),
+    
 ]

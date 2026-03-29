@@ -1,0 +1,181 @@
+/* Body */
+body {
+    overflow-x: hidden;
+    background: #f5f6fa;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    position: fixed;
+    background: #2c3033;
+    color: #fff;
+    transition: width 0.3s;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+.sidebar .brand {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.sidebar a {
+    color: #cfd3ff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    transition: all 0.3s;
+}
+
+.sidebar a i {
+    margin-right: 10px;
+}
+
+.sidebar a:hover {
+    background: #2c2d30;
+    color: #fff;
+}
+
+/* Hide text when collapsed */
+.sidebar.collapsed a span {
+    display: none;
+}
+
+/* Search box in sidebar */
+.search-box {
+    padding: 10px 20px;
+    transition: 0.3s;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+}
+
+/* Hide search box if collapsed */
+.sidebar.collapsed .search-box {
+    display: none;
+}
+
+/* Topbar */
+.topbar {
+    margin-left: 250px;
+    height: 60px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: margin-left 0.3s;
+}
+
+.topbar.collapsed {
+    margin-left: 70px;
+}
+
+/* Content area */
+.content {
+    margin-left: 250px;
+    padding: 40px;
+    transition: margin-left 0.3s;
+}
+
+.content.collapsed {
+    margin-left: 70px;
+}
+
+/* Sidebar submenu */
+.sidebar .nav-item {
+    width: 100%;
+}
+
+.sidebar .nav-link {
+    color: #cfd3ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    background: #2c2d30;
+    color: #fff;
+}
+
+/* Active states */
+.sidebar .nav-link.active {
+    background: #1c2b36;
+    color: #fff;
+}
+
+.sidebar .nav-link.active.text-info {
+    color: #17a2b8;
+}
+
+/* Submenu collapse */
+.sidebar .collapse {
+    transition: height 0.3s ease;
+}
+
+.sidebar .collapse.show {
+    display: block;
+}
+
+/* Rotate icon for collapse */
+.rotate-icon {
+    transition: transform 0.3s ease;
+}
+
+/* Rotate when menu is open */
+a[aria-expanded="true"] .rotate-icon {
+    transform: rotate(180deg);
+}
+
+/* Submenu links */
+.sidebar .collapse ul.nav {
+    flex-direction: column;
+    padding-left: 10px;
+}
+
+.sidebar .collapse ul.nav .nav-link {
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    color: #cfd3ff;
+}
+
+/* Hover for submenu links */
+.sidebar .collapse ul.nav .nav-link:hover {
+    background: #2c2d30;
+    color: #fff;
+}
+
+/* Active submenu link */
+.sidebar .collapse ul.nav .nav-link.active {
+    color: #17a2b8;
+    font-weight: 500;
+}
+
+/* Circle icon class (for avatars or indicators) */
+.icon-circle {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    background-color: #17a2b8;
+    font-size: 1.2rem;
+}

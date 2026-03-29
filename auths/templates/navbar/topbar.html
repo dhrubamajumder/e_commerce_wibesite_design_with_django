@@ -1,5 +1,11 @@
 {% load static %}
+<style>
+  .wishlist-badge {
+    background-color: red !important;
+    color: white;
+}
 
+</style>
 
 
 <div class="container-fluid fixed-top bg-white shadow-sm" style="z-index: 1030;">
@@ -44,8 +50,7 @@
             </svg>
 
             {% if wishlist_count > 0 %}
-            <span id="wishlist-count"
-                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            <span id="wishlist-count" class="wishlist-badge position-absolute top-0 start-100 translate-middle badge rounded-pill">
                 {{ wishlist_count }}
             </span>
             {% endif %}
@@ -70,7 +75,7 @@
                 <a class="dropdown-item" href="{% url 'cart_details_list' %}">Your Orders</a>
               </li>
               <li>
-                <a class="btn btn-outline-danger d-flex justify-content-center" href="{% url 'logout' %}">
+                <a class="btn btn-outline-danger d-flex justify-content-center" onclick="return confirm('Are you sure you want to logout?');" href="{% url 'logout' %}">
                   Log Out
                 </a>
               </li>
@@ -118,7 +123,7 @@
   </div>
 </div>
 
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 let timeout = null;
@@ -133,41 +138,3 @@ input.addEventListener("keyup", function() {
 </script>  
 
 
-
-{% comment %} 
- <div class="container-fluid fixed-top bg-white shadow-sm topbar">
-    <div class="row align-items-center border-bottom">
-
-        <!-- Mobile Toggle -->
-        <div class="col-2 d-lg-none text-start">
-            <button class="btn btn-light" id="sidebarToggle">☰</button>
-        </div>
-
-        <!-- Logo -->
-        <div class="col-6 col-lg-3 text-center text-lg-start">
-            <a href="{% url 'product_list' %}">
-                <img src="{% static 'images/django.png' %}"
-                     style="max-height: 70px;"
-                     class="img-fluid">
-            </a>
-        </div>
-
-        <!-- Right Side -->
-        <div class="col-4 col-lg-9 d-flex justify-content-end align-items-center gap-3">
-
-            <a href="{% url 'wishlist' %}" class="btn btn-light">❤</a>
-
-            <div class="dropdown">
-                <button class="btn btn-light dropdown-toggle"
-                        data-bs-toggle="dropdown">
-                    User
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
-                </ul>
-            </div>
-
-        </div>
-    </div>
-</div> {% endcomment %}

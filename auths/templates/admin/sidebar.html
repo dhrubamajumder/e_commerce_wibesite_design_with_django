@@ -1,0 +1,175 @@
+
+{% load static %}
+
+<style>
+    .rotate-icon {
+        transition: transform 0.3s ease;
+    }
+
+    /* Rotate icon when aria-expanded=true */
+    a[aria-expanded="true"] .rotate-icon {
+        transform: rotate(180deg);
+    }
+</style>
+
+<div class="sidebar" id="sidebar">
+    <ul class="nav flex-column">
+        <div class="brand">
+            <a href="#">
+                <i class="bi bi-cart4"></i>
+                <span>e-commerce</span>
+            </a>
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="Search...">
+        </div>
+
+        <a href="{% url 'admin_dashboard' %}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+
+
+    {% comment %} -----------------   Reports Menu   ----------------- {% endcomment %}
+        {% with request.resolver_match.url_name as url_name %}
+        <li class="nav-item">
+            <a class="nav-link d-flex justify-content-between align-items-center
+            {% if url_name == 'sales_report' or url_name == 'stock_report' %} active bg-primary {% endif %}"
+            data-bs-toggle="collapse"
+            href="#reportMenu"
+            role="button"
+            aria-expanded="{% if url_name == 'sales_report' or url_name == 'stock_report' %}true{% else %}false{% endif %}">
+            <span><i class="bi bi-box me-2"></i> Reports</span>
+            <i class="bi bi-chevron-down rotate-icon"></i>
+            </a>
+
+            <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_report' %}show{% endif %}" id="reportMenu">
+                <ul class="nav flex-column ms-3">
+                    <li>
+                        <a class="nav-link {% if url_name == 'sales_report' %}active text-info{% endif %}" href="#">
+                            Sales Report
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {% if url_name == 'stock_report' %}active text-info{% endif %}" href="#">
+                            Stock Report
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        {% endwith %}
+
+        
+
+        <a href="#">
+            <i class="bi bi-cart"></i>
+            <span>Orders</span>
+        </a>
+        
+    {% comment %} ------------------------   Product Settings Menu   ------------------------ {% endcomment %}
+        {% with request.resolver_match.url_name as url_name %}
+        <li class="nav-item">
+            <a class="nav-link d-flex justify-content-between align-items-center
+                {% if url_name in 'product_create product_list category_create category_list' %} active bg-primary {% endif %}" 
+                data-bs-toggle="collapse" 
+                href="#productMenu" 
+                aria-expanded="{% if url_name in 'product_create product_list category_create category_list' %}true{% else %}false{% endif %}">
+                <span><i class="bi bi-box"></i> Product Settings</span>
+                <i class="bi bi-chevron-down rotate-icon"></i>
+            </a>
+
+            <div class="collapse {% if url_name in 'product_create product_list category_create category_list' %}show{% endif %}" id="productMenu">
+                <ul class="nav flex-column bg-dark ms-3">
+                    <li><a class="nav-link {% if url_name == 'product' %}active text-info{% endif %}" href="{% url 'product' %}">Product List</a></li>
+                    <li><a class="nav-link {% if url_name == 'category_list' %}active text-info{% endif %}" href="{% url 'category_list' %}">Category List</a></li>
+                </ul>
+            </div>
+        </li>
+        {% endwith %}
+
+        <li class="nav-item">
+            <a href="#purchaseMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-bar-chart"></i>
+                    Purchase
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </a>
+
+            <ul class="collapse list-unstyled ms-3" id="purchaseMenu">
+                <li>
+                    <a href="#" class="nav-link">
+                        Purchase List
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        Purchase Return
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+
+        <li class="nav-item">
+            <a href="#basicSettingsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-bar-chart"></i>
+                    Basic Settings
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </a>
+            <ul class="collapse list-unstyled ms-3" id="basicSettingsMenu">
+                <li>
+                    <a href="{% url 'supplier' %}" class="nav-link">
+                        Supplier List
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        Customer List
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+
+        <li class="nav-item">
+            <a href="#userSettingsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-bar-chart"></i>
+                    User Settings
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </a>
+            <ul class="collapse list-unstyled ms-3" id="userSettingsMenu">
+                <li>
+                    <a href="#" class="nav-link">
+                        User List
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        Role Assign
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        Permissions
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>  
+    
+</div>
+
+
+

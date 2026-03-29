@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{% if supplier %}Update Supplier{% else %}Add Supplier{% endif %}{% endblock %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <a href="{% url 'supplier' %}" style="text-decoration: none; color: #6e6e6e;"><b>Supplier List</b> </a>
+      / 
+    <span style="color: #6e6e6e;"><b>{% if supplier %}Supplier Update{% else %}Supplier Create{% endif %}</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>{% if supplier %}Update Supplier{% else %}Create Supplier{% endif %}</h3>
+    <a href="{% url 'supplier' %}" class="btn btn-outline-secondary">Back</a>
+</div>
+
+</div>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Basic Information</h4>
+            <p>Essential supplier details</p><hr>
+
+            <!-- ALERT MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Supplier Name -->
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="id_name" class="form-control" placeholder="e.g. ABC Suppliers" 
+                        value="{% if supplier %}{{ supplier.name }}{% endif %}" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                    <label for="id_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                    <input type="text" name="phone" id="id_phone" class="form-control" placeholder="e.g. 017XXXXXXXX"
+                        value="{% if supplier %}{{ supplier.phone }}{% endif %}" required>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                    <label for="id_address" class="form-label">Address</label>
+                    <textarea name="address" id="id_address" class="form-control" placeholder="Enter address">{% if supplier %}{{ supplier.address }}{% endif %}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    {% if supplier %}Update Supplier{% else %}Save Supplier{% endif %}
+                </button>
+                <a href="{% url 'supplier' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

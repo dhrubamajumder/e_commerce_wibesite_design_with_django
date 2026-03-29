@@ -37,6 +37,7 @@ class Cart(models.Model):
     def get_total_price(self):
         return sum(item.total_price() for item in self.items.all())
 
+
 # --------------------------- Cart Item ------------------------
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
@@ -99,3 +100,41 @@ class Wishlist(models.Model):
         return f"Guest - {self.product.name}"
 
 
+# ------------------------------------------
+
+class Supplier(models.Model):
+    name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+#--------------------------- Customer ------------------------
+class Customer(models.Model):
+    name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=100)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+    
+# ----------------   System Settings   ----------------
+class SystemSettings(models.Model):
+    company_name = models.CharField(max_length=100)
+    tagline = models.CharField(max_length=100)
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    mobile = models.CharField(max_length=20)
+    email = models.EmailField()
+    address = models.TextField()
+    vat = models.PositiveIntegerField()
+    token_or_table = models.CharField(max_length=100)
+    payment_type = models.CharField(max_length=100)
+    website = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.company_name
+    
+    

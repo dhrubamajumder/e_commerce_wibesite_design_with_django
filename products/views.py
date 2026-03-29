@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist
+from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings
 from . forms import ProductForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -30,13 +30,17 @@ def user_dashboard(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard(request):
-    return render(request, 'base.html')
+    return render(request, 'admin_dashboard.html')
 
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def category_list(request):
     categories = Category.objects.all()
     return render(request, 'category/category_list.html', {'categories': categories})
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def category_create(request):
     if request.method == "POST":
         name = request.POST.get('name')
@@ -115,12 +119,14 @@ def ajax_search(request):
 
 
 
-
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def product(request):
     products = Product.objects.all().order_by('-id')
     return render(request, 'product/product.html', {'products':products})
     
-
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def product_create(request):
     categories = Category.objects.all()
     if request.method == "POST":
@@ -167,12 +173,17 @@ def update_cart(request):
     item_id = str(data.get("item_id"))
     action = data.get("action")
 
-    # ================== লগইনকৃত ব্যবহারকারী ==================
+    # ================= Login user =================
     if request.user.is_authenticated:
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        # সর্বশেষ (latest) cart নাও, যদি না থাকে তাহলে create করো
+        cart = Cart.objects.filter(user=request.user).order_by('-created_at').first()
+        if not cart:
+            cart = Cart.objects.create(user=request.user)
+
+        # CartItem get_or_create
         cart_item, created = CartItem.objects.get_or_create(
-            id=item_id,
             cart=cart,
+            product_id=item_id,
             defaults={'quantity': 0}
         )
 
@@ -188,6 +199,7 @@ def update_cart(request):
                     "cart_count": cart.items.count(),
                     "cart_total": float(cart.get_total_price())
                 })
+
         cart_item.save()
 
         return JsonResponse({
@@ -198,15 +210,12 @@ def update_cart(request):
             "cart_total": float(cart.get_total_price())
         })
 
-    # ================== লগইন ছাড়া ব্যবহারকারী ==================
+    # ================= Guest user (Session) =================
     else:
         cart = request.session.get("cart", {})
 
         if action == "inc":
-            if item_id in cart:
-                cart[item_id] += 1
-            else:
-                cart[item_id] = 1  # নতুন প্রোডাক্ট যোগ
+            cart[item_id] = cart.get(item_id, 0) + 1
         elif action == "dec":
             if item_id in cart:
                 cart[item_id] -= 1
@@ -216,15 +225,12 @@ def update_cart(request):
         request.session["cart"] = cart
         request.session.modified = True
 
-        # subtotal এবং cart total হিসাব
+        # subtotal & cart_total হিসাব
         product = Product.objects.get(id=item_id)
         quantity = cart.get(item_id, 0)
         subtotal = product.product_price * quantity
 
-        cart_total = 0
-        for pid, qty in cart.items():
-            p = Product.objects.get(id=pid)
-            cart_total += p.product_price * qty
+        cart_total = sum(Product.objects.get(id=pid).product_price * qty for pid, qty in cart.items())
 
         return JsonResponse({
             "status": "success",
@@ -515,3 +521,75 @@ def faq(request):
 
 def profile(request):
     return render(request, 'navbar/profile.html')
+
+def demo(request):
+    return render(request, 'demo.html')
+
+
+
+
+# ------------------------------------------------------------
+# --------------        Supplier Views        -------------
+# ------------------------------------------------------------
+
+
+def supplier_list(request):
+    suppliers = Supplier.objects.all().order_by('-id')
+    per_page = request.GET.get('per_page', 10)
+    paginator = Paginator(suppliers, per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'per_page': per_page,
+        }
+    return render(request, 'supplier/suppliers.html', context)
+
+
+# -----------------------------
+# Supplier Create View
+# -----------------------------
+
+def supplier_create(request):
+    if request.method == "POST":
+        Supplier.objects.create(
+            name=request.POST.get('name'),
+            phone=request.POST.get('phone'),
+            address=request.POST.get('address'),
+        )
+        messages.success(request, "✅ Supplier added successfully")
+        return redirect('supplier')
+    return render(request, 'supplier/supplier_form.html')
+
+
+def supplier_update(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    
+    if request.method == "POST":
+        supplier.name = request.POST.get('name')
+        supplier.phone = request.POST.get('phone')
+        supplier.address = request.POST.get('address')
+        supplier.save()
+        messages.success(request, "✏️ Supplier updated successfully")
+        return redirect('supplier')
+    context = {'supplier': supplier}
+    return render(request, 'supplier/supplier_form.html', context)
+
+# -----------------------------
+# Supplier Delete View
+# -----------------------------
+@login_required(login_url='/login/')
+def supplier_delete(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if request.method == "POST":
+        supplier.delete()
+        messages.success(request, "🗑️ Supplier deleted successfully")
+    return redirect('supplier')
+
+
+
+# ------------------------------------------------------------
+# --------------        Supplier Views        ----------------
+# ------------------------------------------------------------
+

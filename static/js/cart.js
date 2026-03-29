@@ -155,24 +155,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------------- Add to Cart Buttons ----------------
   document.querySelectorAll(".add-to-cart").forEach(button => {
-    button.addEventListener("click", function () {
-      const url = this.dataset.url;
+    document.addEventListener("DOMContentLoaded", function () {
 
-      fetch(url, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(res => res.json())
-        .then(item => {
-          if (!item.error) {
-            addItemToCart(item);
-            // ---------------- Show Offcanvas ----------------
-            if (offcanvasEl) {
-              const offcanvasInstanceClick = new bootstrap.Offcanvas(offcanvasEl);
-              offcanvasInstanceClick.show();
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      document.querySelectorAll(".add-to-cart").forEach(button => {
+        button.addEventListener("click", function () {
+
+          const productId = this.dataset.id;
+          const url = this.dataset.url;
+
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrftoken,
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({
+              item_id: productId,
+              action: "inc"
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+
+            if (data.status === "success") {
+
+              addItemToCart(data);
+
+              if (offcanvasEl) {
+                const offcanvasInstanceClick = new bootstrap.Offcanvas(offcanvasEl);
+                offcanvasInstanceClick.show();
+              }
             }
-          }
+          })
+          .catch(error => {
+            console.error("Cart error:", error);
+          });
+
         });
+      });
+
     });
   });
 
 });
-
 

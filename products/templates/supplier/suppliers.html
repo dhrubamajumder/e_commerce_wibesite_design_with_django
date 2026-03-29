@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}Products{% endblock %}
+{% block title %}Suppliers{% endblock %}
 {% block content %}
 
+<style>
+    .table>:not(caption)>*>* {
+    padding: .2rem;
+    }
+</style>
 
-<!-- ALERT MESSAGE -->
 {% if messages %}
 <div class="container mt-3">
     {% for message in messages %}
@@ -15,16 +19,22 @@
 </div>
 {% endif %}
 
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>Suppliers</b></span>
+</div>
+
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="text-dark" style="font-family: 'Roboto', sans-serif;">Product List</h3>
-                <a href="{% url 'product_create' %}" class="btn btn-primary">
-                   + Add Product
-                </a>
-           </div> <hr>
-           <form method="get" class="d-inline-block mb-3">
+            <div class="d-flex justify-content-between mb-3">
+                <h4>Suppliers</h4>
+                {% if request.user.is_superuser or 'supplier_create' in permissions_list %}
+                <a href="{% url 'supplier_create' %}" class="btn btn-primary">+ Add Supplier</a>
+                {% endif %}
+            </div>
+            <form method="get" class="d-inline-block mb-4">
                 <label>Data per page: </label>
                 <select name="per_page" onchange="this.form.submit()">
                     <option value="5" {% if per_page|add:'0' == 5 %}selected{% endif %}>5</option>
@@ -33,40 +43,24 @@
                     <option value="50" {% if per_page|add:'0' == 50 %}selected{% endif %}>50</option>
                 </select>
             </form>
-
-            <table class="table table-hover align-middle product-table">
-                <thead class="table-primary">
+            <table class="table table-hover align-middle">
+                <thead class="table-primary align-middle">
                     <tr>
-                        <th>#</th>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Product Price</th>
-                        <th>Purchase Price</th>
-                        <th>Description</th>
-                        <th class="text-center">Created</th>
-                        <th class="text-end">Actions</th>
+                        <th style="width: 10%;" class="p-2">S.N.</th>
+                        <th style="width: 15%;">Name</th>
+                        <th style="width: 15%;">Phone</th>
+                        <th style="width: 15%;">Address</th>
+                        <th class="text-end p-2" style="width: 10%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for product in products %}
+                    {% for s in page_obj %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" width="50">
-                            {% else %}
-                                <span class="text-muted">No image</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.category }}</td>
-                        
-                        <td>৳{{ product.product_price }}</td>
-                        <td>৳{{ product.purchase_price }}</td>
-                        
-                        <td>{{ product.description|default:"-" }}</td>
-                        <td class="text-center">{{ product.created_at|date:"Y-m-d" }}</td>
+                        <td class="p-2">{{ forloop.counter }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.phone }}</td>
+                        <td>{{ s.address }}</td>
+                        {% if request.user.is_superuser or 'product_update' in permissions_list %}
                         <td class="text-end">
                             <div class="dropdown">
                                 <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
@@ -74,40 +68,35 @@
                                 </button>
 
                                 <ul class="dropdown-menu dropdown-menu-end">
+                                    {% if permissions_list and 'supplier_update' in permissions_list %}
                                     <li>
-                                        <a class="dropdown-item" href="#">
+                                        <a class="dropdown-item" href="{% url 'supplier_update' s.id %}">
                                             ✏️ Edit
                                         </a>
                                     </li>
-
+                                    {% endif %}
+                                    {% if permissions_list and 'supplier_delete' in permissions_list %}
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'product_detail' product.id %}">
-                                            👁️ View
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <form method="post" action="#" onsubmit="return confirm('Are you sure you want to delete this Product?');">
+                                        <form method="post" action="{% url 'supplier_delete' s.id %}" onsubmit="return confirm('Are you sure you want to delete this supplier?');">
                                             {% csrf_token %}
                                             <button type="submit" class="dropdown-item text-danger">🗑️ Delete </button>
                                         </form>
                                     </li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center text-muted">
-                            No products found
-                        </td>
+                        <td colspan="4" class="text-center text-muted">No suppliers found</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <!-- Pagination -->
-            <nav>
-                <ul class="pagination justify-content-end mt-3">
+            <nav class="d-flex justify-content-end mt-3">
+                <ul class="pagination">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Previous</a>
@@ -116,6 +105,7 @@
                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
                     {% endif %}
 
+
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
                             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
@@ -123,6 +113,7 @@
                             <li class="page-item"><a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
+
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
@@ -133,9 +124,9 @@
                     {% endif %}
                 </ul>
             </nav>
-
         </div>
     </div>
 </div>
 
+    
 {% endblock %}
