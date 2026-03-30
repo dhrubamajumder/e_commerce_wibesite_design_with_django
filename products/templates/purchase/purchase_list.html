@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase List{% endblock %}
+
+{% block content %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>{% if product %}Product Update{% else %}Purchase List{% endif %}</b></span>
+</div>
+
+<div class="container">
+    <!-- Purchase TABLE -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+           
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="text-dark" style="font-family: 'Roboto', sans-serif;">Purchase List</h3>
+                {% if request.user.is_superuser or 'purchase_create' in permissions_list %}
+                <a href="{% url 'purchase_create' %}" class="btn btn-primary">
+                    + Add Purchase
+                </a>
+                {% endif %}
+            </div> <hr>
+
+            <form method="get" class="d-inline-block mb-3">
+                <label>Data per page: </label>
+                <select name="per_page" onchange="this.form.submit()">
+                    <option value="5" {% if per_page|add:'0' == 5 %}selected{% endif %}>5</option>
+                    <option value="10" {% if per_page|add:'0' == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page|add:'0' == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page|add:'0' == 50 %}selected{% endif %}>50</option>
+                </select>
+            </form>
+
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Supplier</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if purchases %}
+                        {% for purchase in purchases %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ purchase.supplier.name }}</td>
+                                <td>{{ purchase.purchase_date|date:"Y-m-d h:i" }}</td>
+                                <td>{{ purchase.total_amount }}</td>
+                                <td>{{ purchase.status }}</td>
+                                <td class="text-end p-2">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
+                                            &#8942;   <!-- 3 dots -->
+                                        </button>
+
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <button type="button" class="dropdown-item"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#viewModal{{ purchase.id }}">
+                                                    👁️ View
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#printModal{{ purchase.id }}">
+                                                    🖨️ Print
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No purchases found.</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No purchases available.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+                
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination justify-content-end mt-3">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+
+{% for purchase in page_obj %}
+<!-- VIEW MODAL -->
+<div class="modal fade" id="viewModal{{ purchase.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Purchase Details - #{{ purchase.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Supplier:</strong> {{ purchase.supplier.name }}</p>
+                        <p><strong>Date:</strong> {{ purchase.purchase_date|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    <div class="col-6 text-end p-2">
+                        <p>Company Name:<strong> a4b</strong></p>
+                        <p>Address:<strong> Feni</strong></p>
+                    </div>
+                </div>
+                
+
+                <table class="table table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th class="text-end">Purchase Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in purchase.items.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td class="text-end">{{ item.purchase_price }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No items found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">Grand Total: {{ purchase.grand_total }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- PRINT MODAL -->
+<div class="modal fade" id="printModal{{ purchase.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Purchase Invoice - #{{ purchase.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="printContent{{ purchase.id }}">
+                <h4 class="text-center">Purchase Invoice</h4>
+                <hr>
+                 <div class="row">
+                    <div class="col-6">
+                        <p><strong>Supplier:</strong> {{ purchase.supplier.name }}</p>
+                        <p><strong>Date:</strong> {{ purchase.purchase_date|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    <div class="col-6 text-end p-2">
+                        <p>Company Name:<strong> a4b</strong></p>
+                        <p>Address:<strong> Feni</strong></p>
+                    </div>
+                </div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in purchase.items.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.purchase_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Total</th>
+                            <th>{{ purchase.total_amount }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="printPurchase({{ purchase.id }})">
+                    🖨️ Print
+                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+<script>
+function printPurchase(id) {
+    let content = document.getElementById('printContent' + id).innerHTML;
+    let win = window.open('', '', 'height=800,width=800');
+    win.document.write('<html><head><title>Print</title>');
+    win.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">');
+    win.document.write('</head><body>');
+    win.document.write(content);
+    win.document.write('</body></html>');
+    win.document.close();
+    win.focus();
+    win.print();
+    setTimeout(() => win.close(), 500);
+}
+</script>
+{% endblock %}

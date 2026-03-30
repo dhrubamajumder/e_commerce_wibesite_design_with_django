@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ---------------- Meta & DOM Elements ----------------
+  // ---------------- Meta & DOM ----------------
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
   const updateUrl = document.querySelector('meta[name="update-cart-url"]')?.content;
   const removeBaseUrl = document.querySelector('meta[name="remove-item-base-url"]')?.content;
@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartTotalEl = document.getElementById("cartTotal");
   const offcanvasEl = document.getElementById('offcanvasCart');
 
-  // ---------------- Add Item to Cart UI ----------------
+  // ---------------- Add Item To UI ----------------
   function addItemToCart(item) {
+
     if (!cartItemsContainer) return;
 
     let existing = cartItemsContainer.querySelector(`#cart-item-${item.id}`);
@@ -21,40 +22,41 @@ document.addEventListener('DOMContentLoaded', () => {
       existing.querySelector('.item-quantity').textContent = item.quantity;
       existing.querySelector('.item-subtotal').textContent = Number(item.subtotal).toFixed(2);
     } else {
+
       const div = document.createElement("div");
       div.id = `cart-item-${item.id}`;
       div.dataset.itemId = item.id;
-      div.classList.add("cart-item", "d-flex", "justify-content-between", "align-items-center", "mb-2");
+      div.className = "cart-item border-bottom pb-2 mb-2";
 
       div.innerHTML = `
-        <div class="d-flex align-items-center mb-2 w-100">
-          <img src="${item.image}" style="width:50px; height:50px; object-fit:contain;" class="me-2">
-          <div class="flex-grow-1 d-flex justify-content-between align-items-center">
-            <p class="mb-0 small">
+        <div class="d-flex align-items-center">
+          <img src="${item.image}" style="width:50px;height:50px;object-fit:contain;" class="me-2">
+          <div class="flex-grow-1">
+            <div class="small fw-semibold">${item.name}</div>
+            <div class="small">
               ৳ <span class="item-price">${Number(item.price).toFixed(2)}</span> × 
               <span class="item-quantity">${item.quantity}</span> = 
               ৳ <span class="item-subtotal">${Number(item.subtotal).toFixed(2)}</span>
-            </p>
-            <div class="btn-group btn-group-sm ms-4" style="gap: 0.4rem;">
-              <button class="btn btn-outline-secondary btn-dec">-</button>
-              <button class="btn btn-outline-secondary btn-inc">+</button>
-              <button class="btn btn-danger btn-remove">X</button>
             </div>
+          </div>
+          <div class="btn-group btn-group-sm ms-2">
+            <button class="btn btn-outline-secondary btn-dec">-</button>
+            <button class="btn btn-outline-secondary btn-inc">+</button>
+            <button class="btn btn-danger btn-remove">×</button>
           </div>
         </div>
       `;
+
       cartItemsContainer.appendChild(div);
     }
 
-    if (cartCountEl && item.cart_count !== undefined)
-      cartCountEl.textContent = item.cart_count;
-
-    if (cartTotalEl && item.cart_total !== undefined)
-      cartTotalEl.textContent = Number(item.cart_total).toFixed(2);
+    if (cartCountEl) cartCountEl.textContent = item.cart_count;
+    if (cartTotalEl) cartTotalEl.textContent = Number(item.cart_total).toFixed(2);
   }
 
   // ---------------- Update Quantity ----------------
   function updateCart(itemId, action, cartItemEl) {
+
     if (!updateUrl || !csrfToken) return;
 
     fetch(updateUrl, {
@@ -67,7 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(res => res.json())
     .then(data => {
+
       if (data.status === 'success') {
+
         if (data.quantity <= 0) {
           cartItemEl.remove();
         } else {
@@ -83,9 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------------- Remove Item ----------------
   function removeItem(itemId, cartItemEl) {
+
     if (!removeBaseUrl || !csrfToken) return;
 
-    const url = removeBaseUrl.replace('/0/', `/${itemId}/`);
+    const url = removeBaseUrl.replace('0', itemId);
 
     fetch(url, {
       method: 'POST',
@@ -93,112 +98,76 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(res => res.json())
     .then(data => {
+
       if (data.status === 'success') {
         cartItemEl.remove();
+
         if (cartCountEl) cartCountEl.textContent = data.cart_count;
         if (cartTotalEl) cartTotalEl.textContent = Number(data.cart_total).toFixed(2);
       }
     });
   }
 
-  // ---------------- Event Delegation for Cart Buttons ----------------
+  // ---------------- Event Delegation ----------------
   if (cartItemsContainer) {
     cartItemsContainer.addEventListener("click", e => {
+
       const cartItem = e.target.closest('.cart-item');
       if (!cartItem) return;
 
+      const itemId = cartItem.dataset.itemId;
+
       if (e.target.classList.contains('btn-inc'))
-        updateCart(cartItem.dataset.itemId, 'inc', cartItem);
+        updateCart(itemId, 'inc', cartItem);
 
       if (e.target.classList.contains('btn-dec'))
-        updateCart(cartItem.dataset.itemId, 'dec', cartItem);
+        updateCart(itemId, 'dec', cartItem);
 
       if (e.target.classList.contains('btn-remove'))
-        removeItem(cartItem.dataset.itemId, cartItem);
+        removeItem(itemId, cartItem);
     });
   }
 
-  // ---------------- Load Cart on Page Reload ----------------
-  function loadCartOnPageLoad() {
-    if (!cartJsonUrl || !cartItemsContainer) return;
+  // ---------------- Load Cart On Page Load ----------------
+  function loadCart() {
+
+    if (!cartJsonUrl) return;
 
     fetch(cartJsonUrl)
       .then(res => res.json())
       .then(data => {
+
+        if (!cartItemsContainer) return;
+
         cartItemsContainer.innerHTML = "";
 
-        data.items.forEach(item => {
-          addItemToCart({
-            ...item,
-            cart_total: data.cart_total,
-            cart_count: data.cart_count
-          });
-        });
-
-        if (cartTotalEl)
-          cartTotalEl.textContent = Number(data.cart_total).toFixed(2);
-        if (cartCountEl)
-          cartCountEl.textContent = data.cart_count;
-
-        // ---------------- Show Offcanvas AFTER items added ----------------
-        if (data.cart_count > 0) {
-          const offcanvasElReload = document.getElementById('offcanvasCart');
-          if (offcanvasElReload) {
-            const offcanvasInstanceReload = new bootstrap.Offcanvas(offcanvasElReload);
-            offcanvasInstanceReload.show();
-          }
-        }
+        data.items.forEach(item => addItemToCart(item));
       });
   }
 
-  loadCartOnPageLoad();
+  loadCart();
 
-  // ---------------- Add to Cart Buttons ----------------
+  // ---------------- Add To Cart Button ----------------
   document.querySelectorAll(".add-to-cart").forEach(button => {
-    document.addEventListener("DOMContentLoaded", function () {
 
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    button.addEventListener("click", function () {
 
-      document.querySelectorAll(".add-to-cart").forEach(button => {
-        button.addEventListener("click", function () {
+      const url = this.dataset.url;
 
-          const productId = this.dataset.id;
-          const url = this.dataset.url;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
 
-          fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": csrftoken,
-              "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({
-              item_id: productId,
-              action: "inc"
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
+          addItemToCart(data);
 
-            if (data.status === "success") {
-
-              addItemToCart(data);
-
-              if (offcanvasEl) {
-                const offcanvasInstanceClick = new bootstrap.Offcanvas(offcanvasEl);
-                offcanvasInstanceClick.show();
-              }
-            }
-          })
-          .catch(error => {
-            console.error("Cart error:", error);
-          });
-
-        });
-      });
-
+          if (offcanvasEl) {
+            const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+            offcanvas.show();
+          }
+        })
+        .catch(err => console.error("Cart Error:", err));
     });
+
   });
 
 });
-

@@ -1,5 +1,5 @@
-
 {% extends 'index.html' %}
+{% load static %}
 {% block title %}Products{% endblock %}
 {% block content %}
 
@@ -112,6 +112,7 @@
                                     data-id="{{ product.id }}" data-url="{% url 'add_to_cart' product.id %}">
                                 Add
                             </button>
+                            
                         </div>
                     </div>
                 </div>
@@ -122,39 +123,127 @@
 
 </section>
 
+<!-- <script src="{% static 'js/cart.js' %}"></script> -->
 
 
 
-{% endblock %}
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    document.addEventListener("DOMContentLoaded", function () {
+    const csrftoken = getCookie('csrftoken');
+    const cartItems = document.getElementById("cartItems");
+    const cartCountEl = document.getElementById("cartCount");
+    const cartTotalEl = document.getElementById("cartTotal");
 
-    document.querySelectorAll('.wishlist-btn').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const svg = this.querySelector('.heart-icon');
-            const productId = this.dataset.id;
+    // ---------------- Add to Cart ----------------
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const url = this.dataset.url;
 
-            fetch(`/wishlist/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                }
-            })
+            fetch(url)
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'added') {
-                    svg.classList.add('active');
+                // যদি item already thake, update koro
+                let existingItem = document.getElementById("cart-item-" + data.id);
+                if (existingItem) {
+                    existingItem.querySelector(".item-quantity").innerText = data.quantity;
+                    existingItem.querySelector(".item-subtotal").innerText = Number(data.subtotal).toFixed(2);
                 } else {
-                    svg.classList.remove('active');
+                    // notun item create koro
+                    const div = document.createElement("div");
+                    div.id = "cart-item-" + data.id;
+                    div.dataset.itemId = data.id;
+                    div.classList.add("cart-item", "d-flex", "justify-content-between", "align-items-center", "mb-2");
+
+                    div.innerHTML = `
+                        <div class="d-flex align-items-center mb-2 w-100">
+                            <img src="${data.image}" style="width:50px; height:50px; object-fit:contain;" class="me-2">
+                            <div class="flex-grow-1 d-flex justify-content-between align-items-center">
+                                <p class="mb-0 small">
+                                    ৳ <span class="item-price">${Number(data.price).toFixed(2)}</span> × 
+                                    <span class="item-quantity">${data.quantity}</span> = 
+                                    ৳ <span class="item-subtotal">${Number(data.subtotal).toFixed(2)}</span>
+                                </p>
+                                <div class="btn-group btn-group-sm ms-4" style="gap: 0.4rem;">
+                                    <button class="btn btn-outline-secondary btn-dec">-</button>
+                                    <button class="btn btn-outline-secondary btn-inc">+</button>
+                                    <button class="btn btn-danger btn-remove">X</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    cartItems.appendChild(div);
                 }
+
+                // ---------------- Update Cart Count & Total ----------------
+                cartCountEl.innerText = data.cart_count;
+                cartTotalEl.innerText = Number(data.cart_total).toFixed(2);
+
+                // ---------------- Show Offcanvas ----------------
+                let cartCanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasCart'));
+                cartCanvas.show();
             });
         });
     });
+
+    // ---------------- Event delegation for dynamic cart items ----------------
+    cartItems.addEventListener("click", function(e) {
+        const cartItem = e.target.closest('.cart-item');
+        if (!cartItem) return;
+
+        const itemId = cartItem.dataset.itemId;
+
+        // Increment quantity
+        if (e.target.classList.contains('btn-inc')) {
+            fetch("{% url 'update_cart' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                body: JSON.stringify({ item_id: itemId, action: "inc" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                cartItem.querySelector(".item-quantity").innerText = data.quantity;
+                cartItem.querySelector(".item-subtotal").innerText = Number(data.subtotal).toFixed(2);
+                cartCountEl.innerText = data.cart_count;
+                cartTotalEl.innerText = Number(data.cart_total).toFixed(2);
+            });
+        }
+
+        // Decrement quantity
+        if (e.target.classList.contains('btn-dec')) {
+            fetch("{% url 'update_cart' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                body: JSON.stringify({ item_id: itemId, action: "dec" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.quantity <= 0) cartItem.remove();
+                else {
+                    cartItem.querySelector(".item-quantity").innerText = data.quantity;
+                    cartItem.querySelector(".item-subtotal").innerText = Number(data.subtotal).toFixed(2);
+                }
+                cartCountEl.innerText = data.cart_count;
+                cartTotalEl.innerText = Number(data.cart_total).toFixed(2);
+            });
+        }
+
+        // Remove item
+        if (e.target.classList.contains('btn-remove')) {
+            fetch("{% url 'remove_item' 0 %}".replace("/0/", `/${itemId}/`), {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken }
+            })
+            .then(res => res.json())
+            .then(data => {
+                cartItem.remove();
+                cartCountEl.innerText = data.cart_count;
+                cartTotalEl.innerText = Number(data.cart_total).toFixed(2);
+            });
+        }
+    });
+
 });
 </script>
 
-
+{% endblock %}

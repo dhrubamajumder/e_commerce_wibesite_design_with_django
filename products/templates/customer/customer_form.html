@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}{% if customer %} Update Customer{% else %} Save Customer{% endif %}{% endblock %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <a href="{% url 'customer' %}" style="text-decoration: none; color: #6e6e6e;"><b>{% if customer %} Update Customer{% else %} Create Customer{% endif %}</b></a>
+      / 
+    <span style="color: #39a5b8;"><b>Customer Create</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>{% if customer %} Update Customer{% else %} Save Customer{% endif %}</h3>
+    <a href="{% url 'customer' %}" class="btn btn-outline-secondary">Back</a>
+</div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Customer Information</h4>
+            <p>Fill in essential customer details</p>
+            <hr>
+
+            <!-- ALERT MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="id_name" class="form-control" placeholder="Enter customer name"
+                    value="{% if customer %}{{ customer.name }}{% endif %}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_email" class="form-label">Email</label>
+                    <input type="email" name="email" id="id_email" class="form-control" placeholder="Enter email"
+                    value="{% if customer %}{{ customer.email }}{% endif %}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                    <input type="text" name="phone" id="id_phone" class="form-control" placeholder="Enter phone number"
+                    value="{% if customer %}{{ customer.phone }}{% endif %}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_address" class="form-label">Address</label>
+                    <textarea name="address" id="id_address" class="form-control" placeholder="Enter address" >{% if customer %}{{ customer.address }}{% endif %}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_note" class="form-label">Note</label>
+                    <textarea name="note" id="id_note" class="form-control" placeholder="Optional note">{% if customer %}{{ customer.note }}{% endif %}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    {% if customer %} Update Customer{% else %} Save Customer{% endif %}
+                </button>
+                <a href="{% url 'customer' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

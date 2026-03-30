@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .product-card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        background: #f8f9fa;
+    }
+
+    .product-card:hover {
+        background: #e9ecef;
+    }
+
+    .product-price {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .category-btn {
+        margin: 3px;
+    }
+</style>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-danger">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <!-- LEFT SIDE: Product Grid -->
+        <div class="col-md-7 card shadow-sm p-3">
+            <!-- Categories -->
+            <div class="mb-3" id="category-area">
+                <button type="button" class="btn btn-secondary category-btn" data-id="all">All</button>
+                {% for category in categories %}
+                <button type="button" class="btn btn-secondary category-btn" data-id="{{ category.id }}">
+                    {{ category.name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Product Grid -->
+            <div class="row g-3" id="product-grid">
+                {% for product in products %}
+                <div class="col-md-3 product-col">
+                    <div class="product-card" data-id="{{ product.id }}" data-name="{{ product.name }}"
+                        data-price="{{ product.purchase_price }}" data-category="{{ product.category.id }}">
+                        <div class="product-name">{{ product.name }}</div>
+                        <div class="product-price">{{ product.purchase_price }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Purchase Summary -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Purchase Summary
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="purchase-form">
+                        {% csrf_token %}
+
+                        <!-- Supplier -->
+                        <div class="mb-2">
+                            <label>Supplier</label>
+                            <select name="supplier" class="form-select" required>
+                                <option value="" disabled selected>Select Supplier</option>
+                                {% for sup in suppliers %}
+                                <option value="{{ sup.id }}">{{ sup.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Purchase Items Table -->
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Rate</th>
+                                    <th>Total</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchase-items"></tbody>
+                        </table>
+
+                        <!-- Status -->
+                        <div class="mb-2">
+                            <label>Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="Received" selected>Received</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Ordered">Ordered</option>
+                            </select>
+                        </div>
+
+                        <!-- Discount & Service Charge -->
+                        <div class="mb-2">
+                            <label>Discount</label>
+                            <input type="number" name="discount" id="discount-amount" class="form-control" value="0">
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Service Charge</label>
+                            <input type="number" name="service_charge" id="service-charge" class="form-control"
+                                value="0">
+                        </div>
+
+                        <!-- Grand Total -->
+                        <div class="mb-2">
+                            <label>Grand Total</label>
+                            <input type="text" id="grand-total" class="form-control" value="0" readonly>
+                        </div>
+
+                        <!-- Hidden input for POST -->
+                        <input type="hidden" name="purchase_items" id="purchase-items-input">
+
+                        <button type="submit" class="btn btn-success w-100">Save Purchase</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const productGrid = document.getElementById('product-grid');
+        const categoryArea = document.getElementById('category-area');
+        const purchaseTable = document.getElementById('purchase-items');
+        const discountInput = document.getElementById('discount-amount');
+        const serviceChargeInput = document.getElementById('service-charge');
+        const grandTotalInput = document.getElementById('grand-total');
+        const form = document.getElementById('purchase-form');
+
+        // --------------------
+        // Update Grand Total
+        // --------------------
+        function updateGrandTotal() {
+            let total = 0;
+            purchaseTable.querySelectorAll('tr').forEach(row => {
+                const amount = parseFloat(row.querySelector('.amount').innerText) || 0;
+                total += amount;
+            });
+            const discount = parseFloat(discountInput.value) || 0;
+            const service = parseFloat(serviceChargeInput.value) || 0;
+            grandTotalInput.value = (total - discount + service).toFixed(2);
+        }
+
+        // --------------------
+        // Category Filter
+        // --------------------
+        categoryArea.addEventListener('click', function (e) {
+            const btn = e.target.closest('.category-btn');
+            if (!btn) return;
+            const catId = btn.dataset.id;
+            document.querySelectorAll('#product-grid .product-col').forEach(col => {
+                const card = col.querySelector('.product-card');
+                if (!card) return;
+                col.style.display = (catId === 'all' || card.dataset.category === catId) ? '' : 'none';
+            });
+        });
+
+        // --------------------
+        // Add Product to Purchase Table
+        // --------------------
+        productGrid.addEventListener('click', function (e) {
+            const card = e.target.closest('.product-card');
+            if (!card) return;
+
+            const id = card.dataset.id;
+            const name = card.dataset.name;
+            const price = parseFloat(card.dataset.price) || 0;
+
+            let row = purchaseTable.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                let qtySpan = row.querySelector('.qty');
+                let qty = (parseInt(qtySpan.innerText) || 0) + 1;
+                qtySpan.innerText = qty;
+                row.querySelector('.amount').innerText = (qty * price).toFixed(2);
+            } else {
+                row = document.createElement('tr');
+                row.dataset.id = id;
+                row.dataset.price = price;
+                row.innerHTML = `
+                <td>#</td>
+                <td>${name}</td>
+                <td class="qty-cell">
+                    <button type="button" class="btn btn-sm btn-light decrement">−</button>
+                    <span class="qty">1</span>
+                    <button type="button" class="btn btn-sm btn-light increment">+</button>
+                </td>
+                <td>${price.toFixed(2)}</td>
+                <td class="amount">${price.toFixed(2)}</td>
+                <td><button type="button" class="btn btn-sm text-danger remove-item">✖</button></td>
+            `;
+                purchaseTable.appendChild(row);
+            }
+            updateGrandTotal();
+        });
+
+        // --------------------
+        // Increment / Decrement / Remove
+        // --------------------
+        document.addEventListener('click', function (e) {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            if (e.target.classList.contains('increment')) {
+                let qty = parseInt(row.querySelector('.qty').innerText) + 1;
+                row.querySelector('.qty').innerText = qty;
+            }
+            if (e.target.classList.contains('decrement')) {
+                let qty = parseInt(row.querySelector('.qty').innerText) - 1;
+                if (qty <= 0) { row.remove(); updateGrandTotal(); return; }
+                else row.querySelector('.qty').innerText = qty;
+            }
+            if (e.target.classList.contains('remove-item')) {
+                row.remove();
+                updateGrandTotal();
+                return;
+            }
+
+            const amountEl = row.querySelector('.amount');
+            const qtyEl = row.querySelector('.qty');
+            if (amountEl && qtyEl && row.dataset.price) {
+                amountEl.innerText = (parseInt(qtyEl.innerText) * parseFloat(row.dataset.price)).toFixed(2);
+            }
+            updateGrandTotal();
+        });
+
+        // --------------------
+        // Discount & Service Charge Change
+        // --------------------
+        [discountInput, serviceChargeInput].forEach(input => {
+            if (input) input.addEventListener('input', updateGrandTotal);
+        });
+
+        // --------------------
+        // Form Submit
+        // --------------------
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                const items = [];
+                purchaseTable.querySelectorAll('tr').forEach(row => {
+                    items.push({
+                        product_id: row.dataset.id,
+                        quantity: parseInt(row.querySelector('.qty').innerText),
+                        price: parseFloat(row.dataset.price)
+                    });
+                });
+                if (items.length === 0) {
+                    e.preventDefault();
+                    alert("Please add at least one product!");
+                    return false;
+                }
+                document.getElementById('purchase-items-input').value = JSON.stringify(items);
+            });
+        }
+    });
+
+</script>
+
+{% endblock %}

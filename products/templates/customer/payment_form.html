@@ -1,0 +1,86 @@
+{% extends 'index.html' %}
+{% block title %}{% if payment %}Update Customer Payment{% else %}Add Payment{% endif %}{% endblock %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <a href="{% url 'customer_payment_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Customer Payment List</b> </a>
+      / 
+    <span style="color: #39a5b8;"><b>{% if payment %}Customer Payment Update{% else %}Customer Payment Create{% endif %}</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>{% if payment %}Update Customer Payment{% else %}Create Customer Payment{% endif %}</h3>
+    <a href="{% url 'customer_payment_list' %}" class="btn btn-outline-secondary">Back</a>
+</div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Customer Payment Details</h4>
+            <p>Enter customer payment information below</p>
+            <hr>
+
+            <!-- ALERT MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Customer Category -->
+                <div class="mb-3">
+                    <label for="id_customer" class="form-label">
+                        Customer <span class="text-danger">*</span>
+                    </label>
+                    <select name="customer" id="id_customer" class="form-select" required>
+                        <option value="" disabled>Select Customer</option>
+                        {% for cust in customers %}
+                            <option value="{{ cust.id }}"
+                                {% if payment and payment.customer.id == cust.id %}selected{% endif %}>
+                                {{ cust.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Fund -->
+                <div class="mb-3">
+                    <label for="id_fund" class="form-label">Fund <span class="text-danger">*</span></label>
+                    <select name="fund" id="id_fund" class="form-select" required>
+                        <option value="" disabled>Select fund</option>
+                        {% for f in funds %}
+                            <option value="{{ f.id }}" {% if expense and expense.fund.id == f.id %}selected{% endif %}>{{ f.fund_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="id_amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" id="id_amount" class="form-control" step="0.01" min="0" placeholder="e.g. 1500.00"
+                        value="{% if payment %}{{ payment.amount }}{% endif %}" required>
+                </div>
+
+                <!-- Note -->
+                <div class="mb-3">
+                    <label for="id_note" class="form-label">Note</label>
+                    <textarea name="note" id="id_note" class="form-control" placeholder="Enter note (optional)">{% if payment %}{{ payment.note }}{% endif %}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if payment %} Update Customer Payment{% else %} Save Customer Payment{% endif %}
+                </button>
+                <a href="{% url 'customer_payment_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

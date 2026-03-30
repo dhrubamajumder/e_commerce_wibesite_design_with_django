@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Customer Payment{% endblock %}
+{% block content %}
+<style>
+    .table>:not(caption)>*>* {
+    padding: .1rem;
+    }
+</style>
+
+
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ message }}
+            <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <h4>Customers</h4>
+                {% if request.user.is_superuser or 'customer_create' in permissions_list %}
+                <a href="{% url 'customer_create' %}" class="btn btn-primary">+ Add Customer</a>
+                {% endif %}
+            </div>
+            <form method="get" class="d-inline-block mb-4">
+                <label>Data per page: </label>
+                <select name="per_page" onchange="this.form.submit()">
+                    <option value="5" {% if per_page|add:'0' == 5 %}selected{% endif %}>5</option>
+                    <option value="10" {% if per_page|add:'0' == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page|add:'0' == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page|add:'0' == 50 %}selected{% endif %}>50</option>
+                </select>
+            </form>
+
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-primary align-middle">
+                    <tr>
+                        <th class="p-2">S.N.</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Note</th>
+                        {% if request.user.is_superuser or 'customer_update' in permissions_list or 'customer_delete' in permissions_list %}
+                        <th class="text-end p-2">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in customers  %}
+                    <tr>
+                        <td class="p-2">{{ forloop.counter }}</td>
+                        <td>{{ c.name }}</td>
+                        <td>{{ c.email }}</td>
+                        <td>{{ c.phone }}</td>
+                        <td>{{ c.address }}</td>
+                        <td>{{ c.note }}</td>
+                        {% if request.user.is_superuser or 'customer_update' in permissions_list or 'customer_delete' in permissions_list %}
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
+                                    &#8942;   <!-- 3 dots -->
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {% if permissions_list and 'customer_update' in permissions_list %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'customer_update' c.id %}">
+                                            ✏️ Edit
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% if permissions_list and 'customer_delete' in permissions_list %}
+                                    <li>
+                                        <form method="post" action="{% url 'customer_delete' c.id %}" onsubmit="return confirm('Are you sure you want to delete this customer?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger">🗑️ Delete </button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No customers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <!-- Pagination Controls -->
+            <nav class="d-flex justify-content-end mt-3">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

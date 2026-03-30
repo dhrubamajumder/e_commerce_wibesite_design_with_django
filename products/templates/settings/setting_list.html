@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>System Settings</b></span>
+</div>
+
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="images justify-content-center d-flex">
+                {% if settings.logo %}
+                <img src="{{ settings.logo.url }}" alt="Company Logo" style="height:300px; width:300px;">
+                {% endif %}
+            </div>
+            
+            <div class="card-header d-flex justify-content-between">
+                
+                <h3 class="mb-0">System Settings</h3>
+                {% if settings %}
+                    {% if permissions_list and 'settings_update' in permissions_list %}
+                    <a href="{% url 'settings_update' settings.id %}" class="btn btn-success btn-sm d-flex justify-content-end">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'setting_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus"></i> Create
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if settings %}
+            <div class="card-body p-3">
+                <table class="table table-bordered mb-0">
+
+                    <tr><th>Company Name :</th><td>{{ settings.company_name }}</td></tr>
+                    <tr><th>Tag Line :</th><td>{{ settings.tagline }}</td></tr>
+                    <tr><th>Contact Number :</th><td>{{ settings.mobile }}</td></tr>
+                    <tr><th>Email :</th><td>{{ settings.email }}</td></tr>
+                    <tr><th>Address :</th><td>{{ settings.address }}</td></tr>
+                    <tr><th>VAT :</th><td>{{ settings.vat }} %</td></tr>
+                    <tr><th>Token/Table :</th><td>{{ settings.token_or_table }}</td></tr>
+                    <tr><th>Payment Type :</th><td>{{ settings.payment_type }}</td></tr>
+                    <tr><th>Website :</th><td>{{ settings.website }}</td></tr>
+                </table>
+            </div>
+
+            {% else %}
+                <div class="card-body text-center text-muted">
+                    No settings found. Please create system settings.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

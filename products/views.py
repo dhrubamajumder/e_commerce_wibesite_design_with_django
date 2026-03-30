@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings
-from . forms import ProductForm
+from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock
+from . forms import ProductForm, SystemSettingsForm, CustomerForm, PurchaseForm, PurchaseItemForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -9,7 +9,8 @@ from .models import Product
 import json
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required, user_passes_test
-
+from django.forms import modelformset_factory
+from django.db.models import Sum
 
 
 
@@ -31,6 +32,12 @@ def user_dashboard(request):
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_profile(request):
+    return render(request, 'admin/profile.html')
 
 
 @login_required
@@ -95,6 +102,25 @@ def product_list(request, category_id=None):
 
     return render(request, 'product/product_list.html', context)
 
+
+def stock_list(request):
+    stocks = Stock.objects.select_related('product', 'product__category')
+    stock_data = []
+    for stock in stocks:
+        supplier_info = (
+            PurchaseItem.objects
+            .filter(product=stock.product, purchase__status="Received")
+            .values('purchase__supplier__name')
+            .annotate(total_qty=Sum('quantity'))
+        )
+        stock_data.append({
+            'stock': stock,
+            'suppliers': supplier_info
+        })
+    context = {
+        'stock_data': stock_data
+    }
+    return render(request, 'stock/stock_list.html', context)
 
 
 def ajax_search(request):
@@ -164,31 +190,30 @@ def content(request):
 # --------------------------------------------------------------------------------------
 # -----------------------------     Cart      ------------------------------------------
 # --------------------------------------------------------------------------------------
-
 def update_cart(request):
     if request.method != "POST":
         return JsonResponse({"status": "fail"})
 
     data = json.loads(request.body)
-    item_id = str(data.get("item_id"))
+    item_id = data.get("item_id")
     action = data.get("action")
 
     # ================= Login user =================
     if request.user.is_authenticated:
-        # সর্বশেষ (latest) cart নাও, যদি না থাকে তাহলে create করো
+        # সর্বশেষ cart নাও, যদি না থাকে create করো
         cart = Cart.objects.filter(user=request.user).order_by('-created_at').first()
         if not cart:
             cart = Cart.objects.create(user=request.user)
 
-        # CartItem get_or_create
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product_id=item_id,
-            defaults={'quantity': 0}
-        )
+        try:
+            cart_item = CartItem.objects.get(cart=cart, product_id=item_id)
+        except CartItem.DoesNotExist:
+            # Increment action এ না থাকলে 404 return করো
+            return JsonResponse({"status": "fail", "message": "Cart item not found"}, status=404)
 
         if action == "inc":
             cart_item.quantity += 1
+            cart_item.save()
         elif action == "dec":
             cart_item.quantity -= 1
             if cart_item.quantity <= 0:
@@ -199,8 +224,7 @@ def update_cart(request):
                     "cart_count": cart.items.count(),
                     "cart_total": float(cart.get_total_price())
                 })
-
-        cart_item.save()
+            cart_item.save()
 
         return JsonResponse({
             "status": "success",
@@ -226,10 +250,13 @@ def update_cart(request):
         request.session.modified = True
 
         # subtotal & cart_total হিসাব
-        product = Product.objects.get(id=item_id)
+        try:
+            product = Product.objects.get(id=item_id)
+        except Product.DoesNotExist:
+            return JsonResponse({"status": "fail", "message": "Product not found"}, status=404)
+
         quantity = cart.get(item_id, 0)
         subtotal = product.product_price * quantity
-
         cart_total = sum(Product.objects.get(id=pid).product_price * qty for pid, qty in cart.items())
 
         return JsonResponse({
@@ -239,7 +266,6 @@ def update_cart(request):
             "cart_count": sum(cart.values()),
             "cart_total": float(cart_total)
         })
-        
 
 def remove_item(request, pk):
     # Logged in
@@ -398,6 +424,50 @@ def cart_items_json(request):
         "items": items,
         "grand_total": grand_total
     })
+    
+def cart_json(request):
+    if request.user.is_authenticated:
+        cart = request.user.carts.order_by('-created_at').first()  # latest cart
+        items = []
+        grand_total = 0
+
+        if cart:
+            for item in cart.items.all():  # related_name="items" from CartItem
+                subtotal = item.total_price()
+                grand_total += subtotal
+                items.append({
+                    "id": item.id,
+                    "name": item.product.name,
+                    "qty": item.quantity,
+                    "price": float(item.product.product_price),
+                    "subtotal": float(subtotal)
+                })
+
+        return JsonResponse({
+            "items": items,
+            "grand_total": float(grand_total)
+        })
+    else:
+        # Guest session cart
+        cart = request.session.get('cart', {})
+        items = []
+        grand_total = 0
+        for product_id, qty in cart.items():
+            product = Product.objects.get(id=product_id)
+            subtotal = product.product_price * qty
+            grand_total += subtotal
+            items.append({
+                "id": product.id,
+                "name": product.name,
+                "qty": qty,
+                "price": float(product.product_price),
+                "subtotal": float(subtotal)
+            })
+        return JsonResponse({
+            "items": items,
+            "grand_total": float(grand_total)
+        })
+
 
 def cart_list(request):
     if not request.user.is_authenticated:
@@ -456,6 +526,13 @@ def cart_details_list(request):
     orders = Order.objects.filter(user=request.user).order_by('-id')
     for order in orders:
         return render(request, "product/cart_details_list.html", {"orders": orders})
+
+
+def order_list(request):
+    orders = Order.objects.all().order_by('delivery_date')
+    return render(request, "admin/order_list.html", {"orders": orders})
+
+
 
 
 @login_required
@@ -571,7 +648,7 @@ def supplier_update(request, pk):
         supplier.phone = request.POST.get('phone')
         supplier.address = request.POST.get('address')
         supplier.save()
-        messages.success(request, "✏️ Supplier updated successfully")
+        messages.success(request, "Supplier updated successfully")
         return redirect('supplier')
     context = {'supplier': supplier}
     return render(request, 'supplier/supplier_form.html', context)
@@ -593,3 +670,202 @@ def supplier_delete(request, pk):
 # --------------        Supplier Views        ----------------
 # ------------------------------------------------------------
 
+@login_required(login_url='/login/')
+def settings_list(request):
+    settings_instance = SystemSettings.objects.first()
+    return render(request, 'settings/setting_list.html', {'settings': settings_instance})
+
+
+# Create new system settings
+@login_required(login_url='/login/')
+def setting_create(request):
+    if SystemSettings.objects.exists():
+        return redirect('settings_list')
+    if request.method == "POST":
+        form = SystemSettingsForm(request.POST, request.FILES)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if request.POST.get('delete_logo') and instance.logo:
+                instance.logo.delete(save=False)
+                instance.logo = None
+            instance.save()
+            return redirect('settings_list')
+    else:
+        form = SystemSettingsForm()
+    print(form.instance.logo)   
+    print(form.errors)    
+    return render(request, 'settings/setting_form.html', {'form': form, 'title': 'Create System Settings'})
+      
+
+@login_required(login_url='/login/')
+def setting_update(request, pk):
+    settings_update = get_object_or_404(SystemSettings, pk=pk)
+    if request.method == "POST":
+        form = SystemSettingsForm(request.POST, request.FILES)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if request.POST.get('delete_logo') and instance.logo:
+                instance.logo.delete(save=False)
+                instance.logo = None
+            instance.save()
+            return redirect('settings_list')
+    else:
+        form = SystemSettingsForm(instance=settings_update)
+    return render(request, 'settings/setting_form.html', {'form':form, 'title':'Update System Settings'})
+
+
+
+
+# --------------------------------------------------------------  Customer View -----------------------------------------------------------
+
+@login_required(login_url='/login/')
+def customer_list(request):
+    customers = Customer.objects.all().order_by('-id')
+    return render(request, 'customer/customer.html', {'customers': customers})  
+
+# ---------------------------
+# 2. Customer Create View
+# ---------------------------
+
+@login_required(login_url='/login/')
+def customer_create(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Customer added successfully")
+            return redirect('customer')
+    else:
+        form = CustomerForm()
+    return render(request, 'customer/customer_form.html', {'form': form})
+
+
+# ---------------------------
+# 3. Customer Update View
+# ---------------------------
+
+@login_required(login_url='/login/')
+def customer_update(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == "POST":
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✏️ Customer updated successfully")
+            return redirect('customer')
+    else:
+        form = CustomerForm(instance=customer)
+    return render(request, 'customer/customer_form.html', {'form': form, 'customer': customer})
+
+
+# ---------------------------
+# 4. Customer Delete View
+# ---------------------------
+
+@login_required(login_url='/login/')
+def customer_delete(request, pk):
+    if request.method == "POST":
+        Customer.objects.filter(pk=pk).delete()
+        messages.success(request, "🗑️ Customer deleted successfully")
+    return redirect('customer')
+
+
+
+# ================= Purchase List =================
+@login_required
+def purchase_list(request):
+    purchases = Purchase.objects.all().order_by('-id')
+    return render(request, 'purchase/purchase_list.html', {'purchases': purchases})
+
+
+# ================= Purchase Create =================
+# @login_required
+# def purchase_create(request):
+#     # ModelFormset for PurchaseItem
+#     PurchaseItemFormSet = modelformset_factory(
+#         PurchaseItem,
+#         form=PurchaseItemForm,
+#         extra=1,
+#         can_delete=True
+#     )
+
+#     if request.method == "POST":
+#         purchase_form = PurchaseForm(request.POST)
+#         formset = PurchaseItemFormSet(request.POST, queryset=PurchaseItem.objects.none())
+
+#         if purchase_form.is_valid() and formset.is_valid():
+#             # Save Purchase
+#             purchase = purchase_form.save(commit=False)
+#             purchase.created_by = request.user
+#             purchase.save()
+
+#             # Save PurchaseItems
+#             for form in formset:
+#                 if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+#                     item = form.save(commit=False)
+#                     item.purchase = purchase
+#                     item.save()
+
+#             # Update total_amount based on items
+#             purchase.update_total_amount()
+
+#             messages.success(request, "Purchase created successfully!")
+#             return redirect('purchase_list')
+
+#     else:
+#         purchase_form = PurchaseForm()
+#         formset = PurchaseItemFormSet(queryset=PurchaseItem.objects.none())
+
+#     return render(request, 'purchase/purchase_form.html', {
+#         'purchase_form': purchase_form,
+#         'formset': formset,
+#         'is_update': False,
+#     })
+
+
+
+def purchase_create(request):
+    if request.method == 'POST':
+        form = PurchaseForm(request.POST)
+        items_json = request.POST.get('purchase_items')
+        if form.is_valid() and items_json:
+            purchase = form.save(commit=False)
+            purchase.created_by = request.user
+            purchase.save()
+            items = json.loads(items_json)
+            for item in items:
+                product = Product.objects.get(pk=item['product_id'])
+                # Create PurchaseItem
+                PurchaseItem.objects.create(
+                    purchase=purchase,
+                    product=product,
+                    quantity=item['quantity'],
+                    purchase_price=item['price']
+                )
+                # Update Stock
+                stock, created = Stock.objects.get_or_create(product=product)
+                stock.quantity += item['quantity']
+                stock.save()
+            # Update purchase total
+            purchase.update_total_amount()
+            messages.success(request, "Purchase created successfully!")
+            return redirect('purchase_list')
+        else:
+            # Show validation errors
+            if form.errors:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+            if not items_json:
+                messages.error(request, "No items were added to the purchase.")
+    else:
+        form = PurchaseForm()
+
+    context = {
+        'form': form,
+        'purchase': None,
+        'suppliers': Supplier.objects.all(),
+        'categories': Category.objects.all(),
+        'products': Product.objects.all(),
+    }
+    return render(request, 'purchase/purchase_form.html', context)

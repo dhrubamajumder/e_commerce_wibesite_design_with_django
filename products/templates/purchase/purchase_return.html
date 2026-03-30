@@ -1,0 +1,86 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<div class="alert-message justify-content-center d-flex mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger {{ message.tags }}" style="width: 80%;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
+
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Purchase Return</h5>
+                </div>
+
+                <div class="card-body">
+
+                    
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <!-- Purchase -->
+                        <div class="mb-3">
+                            <label class="form-label">Purchase</label>
+                            <select name="purchase_id" class="form-select" required>
+                                <option value="">Select Purchase</option>
+                                {% for p in purchases %}
+                                    <option value="{{ p.id }}">
+                                        #{{ p.id }} | {{ p.supplier.name }} | {{ p.created_at|date:"d-m-Y" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Product -->
+                        <div class="mb-3">
+                            <label class="form-label">Product</label>
+                            <select name="product_id" class="form-select" required>
+                                <option value="">Select Product</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}">
+                                        {{ product.name }} (Stock: {{ product.stock.quantity }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="mb-3">
+                            <label class="form-label">Return Quantity</label>
+                            <input type="number" name="quantity" class="form-control" min="1" required>
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="mb-3">
+                            <label class="form-label">Reason / Note</label>
+                            <textarea name="note" class="form-control" rows="3"
+                                placeholder="Optional"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Confirm Return
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

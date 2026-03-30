@@ -35,16 +35,16 @@
         {% with request.resolver_match.url_name as url_name %}
         <li class="nav-item">
             <a class="nav-link d-flex justify-content-between align-items-center
-            {% if url_name == 'sales_report' or url_name == 'stock_report' %} active bg-primary {% endif %}"
+            {% if url_name == 'sales_report' or url_name == 'stock_list' %} active bg-primary {% endif %}"
             data-bs-toggle="collapse"
             href="#reportMenu"
             role="button"
-            aria-expanded="{% if url_name == 'sales_report' or url_name == 'stock_report' %}true{% else %}false{% endif %}">
+            aria-expanded="{% if url_name == 'sales_report' or url_name == 'stock_list' %}true{% else %}false{% endif %}">
             <span><i class="bi bi-box me-2"></i> Reports</span>
             <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
 
-            <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_report' %}show{% endif %}" id="reportMenu">
+            <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_list' %}show{% endif %}" id="reportMenu">
                 <ul class="nav flex-column ms-3">
                     <li>
                         <a class="nav-link {% if url_name == 'sales_report' %}active text-info{% endif %}" href="#">
@@ -52,7 +52,7 @@
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link {% if url_name == 'stock_report' %}active text-info{% endif %}" href="#">
+                        <a class="nav-link {% if url_name == 'stock_list' %}active text-info{% endif %}" href="{% url 'stock_list' %}">
                             Stock Report
                         </a>
                     </li>
@@ -63,7 +63,7 @@
 
         
 
-        <a href="#">
+        <a href="{% url 'order_list' %}">
             <i class="bi bi-cart"></i>
             <span>Orders</span>
         </a>
@@ -89,57 +89,80 @@
         </li>
         {% endwith %}
 
+        {% with request.resolver_match.url_name as url_name %}
         <li class="nav-item">
-            <a href="#purchaseMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+            <a class="nav-link d-flex justify-content-between align-items-center
+                {% if url_name in 'purchase_create purchase_list purchase_return' %} active bg-primary {% endif %}" 
+                data-bs-toggle="collapse" 
+                href="#purchaseMenu" 
+                aria-expanded="{% if url_name in 'purchase_create purchase_list purchase_return' %}true{% else %}false{% endif %}">
+                
                 <span>
                     <i class="bi bi-bar-chart"></i>
                     Purchase
                 </span>
-                <i class="bi bi-chevron-down"></i>
+                <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
 
-            <ul class="collapse list-unstyled ms-3" id="purchaseMenu">
-                <li>
-                    <a href="#" class="nav-link">
-                        Purchase List
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link">
-                        Purchase Return
-                    </a>
-                </li>
-            </ul>
+            <div class="collapse {% if url_name in 'purchase_create purchase_list purchase_return' %}show{% endif %}" id="purchaseMenu">
+                <ul class="nav flex-column bg-dark ms-3">
+                    <li>
+                        <a class="nav-link {% if url_name == 'purchase_list' %}active text-info{% endif %}" 
+                        href="{% url 'purchase_list' %}">
+                            Purchase List
+                        </a>
+                    </li> 
+                    <li>
+                        <a class="nav-link {% if url_name == 'purchase_return' %}active text-info{% endif %}" 
+                        href="#">
+                            Purchase Return
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </li>
+        {% endwith %}
 
 
+        {% with request.resolver_match.url_name as url_name %}
         <li class="nav-item">
-            <a href="#basicSettingsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+            <a class="nav-link d-flex justify-content-between align-items-center
+                {% if url_name in 'supplier customer settings_list' %} active bg-primary {% endif %}"
+                data-bs-toggle="collapse"
+                href="#basicSettingsMenu"
+                aria-expanded="{% if url_name in 'supplier customer settings_list' %}true{% else %}false{% endif %}">
+                
                 <span>
-                    <i class="bi bi-bar-chart"></i>
+                    <i class="bi bi-gear"></i>
                     Basic Settings
                 </span>
-                <i class="bi bi-chevron-down"></i>
+                <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
-            <ul class="collapse list-unstyled ms-3" id="basicSettingsMenu">
-                <li>
-                    <a href="{% url 'supplier' %}" class="nav-link">
-                        Supplier List
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link">
-                        Customer List
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link">
-                        Settings
-                    </a>
-                </li>
-            </ul>
-        </li>
 
+            <div class="collapse {% if url_name in 'supplier customer settings_list' %}show{% endif %}" id="basicSettingsMenu">
+                <ul class="nav flex-column bg-dark ms-3">
+                    <li>
+                        <a class="nav-link {% if url_name == 'supplier' %}active text-info{% endif %}"
+                        href="{% url 'supplier' %}">
+                            Supplier List
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {% if url_name == 'customer' %}active text-info{% endif %}"
+                        href="{% url 'customer' %}">
+                            Customer List
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {% if url_name == 'settings_list' %}active text-info{% endif %}"
+                        href="{% url 'settings_list' %}">
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        {% endwith %}
 
         <li class="nav-item">
             <a href="#userSettingsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
