@@ -17,7 +17,7 @@
     <div class="card shadow-lg border-0" style="width: 380px;">
         <div class="card-body p-4">
 
-            <h3 class="text-center mb-4 fw-bold">Login</h3>
+            <h3 class="text-center mb-4 fw-bold">Admin Login</h3>
 
             <form method="post">
                 {% csrf_token %}
@@ -34,7 +34,6 @@
 
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary">Login</button>
-                    <a href="{% url 'register' %}" class="btn btn-outline-secondary">Create Account</a>
                 </div>
 
                 {% if error %}

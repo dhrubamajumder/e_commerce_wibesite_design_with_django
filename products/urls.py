@@ -25,8 +25,10 @@ urlpatterns = [
     path('get-cart-items/', views.get_cart_items, name='get_cart_items'),
     
     path("cart-items-json/", views.cart_items_json, name="cart_items_json"),
-    path('cart-details/', views.cart_details_list, name='cart_details_list'),
-    path('order-list/', views.order_list, name='order_list'),
+    path('order-details/', views.user_order_list, name='user_order_list'),
+    path('order-details/cancel/<int:order_id>/', views.cancel_order, name='cancel_order'),
+    path('order-list/', views.admin_order_list, name='admin_order_list'),
+    path('order-list/<int:order_id>/update-status/', views.update_order_status, name='update_order_status'),
     
     path('cart/json/', views.cart_json, name='cart_json'),
     
@@ -47,7 +49,8 @@ urlpatterns = [
     path('contact/', views.contact , name='contact'),
     path('faq/', views.faq , name='faq'),
     
-    path('profile/', views.profile, name='profile'),
+    path('profile-list/', views.profile_list, name='profile_list'),
+    path('profile/update/', views.profile_update, name='profile_update'),
     path('admin-profile/', views.admin_profile, name='admin_profile'),
     
     path('demo/', views.demo, name='demo'),

@@ -7,18 +7,33 @@
     <span style="color: #39a5b8;"><b>System Settings</b></span>
 </div>
 
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+
 <div class="container">
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="images justify-content-center d-flex">
                 {% if settings.logo %}
-                <img src="{{ settings.logo.url }}" alt="Company Logo" style="height:300px; width:300px;">
+                <img src="{{ settings.logo.url }}" alt="Company Logo" style="height:100px; width:100px;">
                 {% endif %}
             </div>
             
             <div class="card-header d-flex justify-content-between">
                 
                 <h3 class="mb-0">System Settings</h3>
+                <a href="{% url 'settings_update' settings.id %}" class="btn btn-success btn-sm d-flex justify-content-end"><i class="bi bi-pencil"></i> Edit</a>
+
                 {% if settings %}
                     {% if permissions_list and 'settings_update' in permissions_list %}
                     <a href="{% url 'settings_update' settings.id %}" class="btn btn-success btn-sm d-flex justify-content-end">
@@ -42,8 +57,8 @@
                     <tr><th>Email :</th><td>{{ settings.email }}</td></tr>
                     <tr><th>Address :</th><td>{{ settings.address }}</td></tr>
                     <tr><th>VAT :</th><td>{{ settings.vat }} %</td></tr>
-                    <tr><th>Token/Table :</th><td>{{ settings.token_or_table }}</td></tr>
-                    <tr><th>Payment Type :</th><td>{{ settings.payment_type }}</td></tr>
+                    <!-- <tr><th>Token/Table :</th><td>{{ settings.token_or_table }}</td></tr> -->
+                    <!-- <tr><th>Payment Type :</th><td>{{ settings.payment_type }}</td></tr> -->
                     <tr><th>Website :</th><td>{{ settings.website }}</td></tr>
                 </table>
             </div>

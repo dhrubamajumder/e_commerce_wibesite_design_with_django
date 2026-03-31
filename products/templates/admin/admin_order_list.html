@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4 text-center">All Orders (Admin)</h2>
+    <hr>
+
+    {% if orders %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Address</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Delivery Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.user.username }}</td>
+                <td>{{ order.address }}</td>
+                <td>৳ {{ order.total_amount }}</td>
+                <td>
+                    <select class="form-select status-select" data-order-id="{{ order.id }}">
+                        {% for key, value in order.STATUS_CHOICES %}
+                            <option value="{{ key }}" {% if order.status == key %}selected{% endif %}>
+                                {{ value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>{{ order.delivery_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No orders yet.</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selects = document.querySelectorAll('.status-select');
+
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            const orderId = this.dataset.orderId;
+            const status = this.value;
+
+            fetch("{% url 'update_order_status' 0 %}".replace('/0/', '/' + orderId + '/'), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'status=' + status
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status updated to ' + data.status);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

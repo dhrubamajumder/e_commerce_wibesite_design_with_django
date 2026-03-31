@@ -64,17 +64,40 @@ class Order(models.Model):
         ('cod', 'Cash on Delivery'),
         ('bkash', 'bKash'),
     )
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Received', 'Received'),
+        ('Shipped', 'Shipped'),
+        ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled'),
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=200)
     phone = models.CharField(max_length=15)
     address = models.TextField()
     delivery_date = models.DateField()
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            previous = Order.objects.get(pk=self.pk)
+            # Shipped state: decrease stock
+            if previous.status != 'Shipped' and self.status == 'Shipped':
+                for item in self.items.all():
+                    item.product.stock.quantity -= item.quantity
+                    item.product.stock.save()
+            # Cancel shipped order: restore stock
+            elif previous.status == 'Shipped' and self.status == 'Cancelled':
+                for item in self.items.all():
+                    item.product.stock.quantity += item.quantity
+                    item.product.stock.save()
+        super().save(*args, **kwargs)
+    
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
@@ -137,8 +160,6 @@ class SystemSettings(models.Model):
     email = models.EmailField()
     address = models.TextField()
     vat = models.PositiveIntegerField()
-    token_or_table = models.CharField(max_length=100)
-    payment_type = models.CharField(max_length=100)
     website = models.CharField(max_length=100)
     
     def __str__(self):
@@ -186,3 +207,11 @@ class PurchaseItem(models.Model):
         return self.quantity * self.purchase_price
     
     
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+
+    def __str__(self):
+        return self.user.username

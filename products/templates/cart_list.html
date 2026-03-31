@@ -47,10 +47,10 @@
                     <td class="text-end">
                         ৳ {{ item.total_price }}
                     </td>
-                    <td><form action="{% url 'remove_item' item.pk %}" method="post" style="display:inline;">
+                    {% comment %} <td><form action="{% url 'remove_item' item.pk %}" method="post" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-link text-danger p-0">Remove</button>
-                    </form></td>
+                    </form></td> {% endcomment %}
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -73,10 +73,10 @@
           {% csrf_token %}
 
           <!-- Full Name -->
-          <div class="mb-3">
+          {% comment %} <div class="mb-3">
             <label class="form-label">Full Name</label>
             <input type="text" name="full_name" class="form-control" required>
-          </div>
+          </div> {% endcomment %}
 
           <!-- Phone Number -->
           <div class="mb-3">

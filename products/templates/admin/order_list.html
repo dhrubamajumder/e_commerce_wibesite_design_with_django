@@ -1,60 +1,226 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container my-5">
-    <h2 class="mb-4 text-center">Orders Details</h2>
-
+<div class="container">
+    <h2 class="mb-4 text-center">My Orders</h2>
+    <hr>
     {% if orders %}
-        <div class="row g-3">
-            {% for order in orders %}
-            <div class="col-6">
-                <div class="card shadow-sm p-2 mb-3">
-                    <h5>Order #{{ forloop.counter }}</h5>
-                    <div class="background p-2 " style="background-color: rgb(245, 245, 244);">
-                        <div class="d-flex align-items-center justify-content-between rounded p-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <p class="mb-0">{{ order.address }}</p>
-                            </div>
-                            <div>
-                                <strong>{{ order.phone }}</strong>
-                            </div>
+    <div class="row">
+        <!-- Left Column: Orders List -->
+        <div class="col-md-4">
+            <div class="list-group">
+                {% for order in orders %}
+                <div class="list-group-item mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Order #{{ order.id }}</strong><br>
+                            <small>৳ {{ order.total_amount }} | {{ order.delivery_date }}</small>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between rounded p-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <p><small>Delivery Date:</small> <strong>{{ order.delivery_date }}</strong></p>
-                            </div>
-                            <div>
-                                <p class="text-end"><small>৳ </small><strong> {{ order.total_amount }}</strong></p>
-                            </div>
-                        </div>
-                        
-                    </div>
-
-                    <div class="d-flex flex-column">
-                        {% for item in order.items.all %}
-                        <div class="d-flex align-items-center justify-content-between border rounded p-2">
-                            <!-- Product Image -->
-                            <div class="d-flex align-items-center gap-1">
-                                {% if item.product.image %}
-                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:50px; height:50px; object-fit:contain;">
-                                {% endif %}
-                                <p class="mb-0">{{ item.product.name }}</p>
-                            </div>
-                            <!-- Quantity × Price = Subtotal -->
-                            <div>
-                                <!-- <small>৳ {{ item.price }} × {{ item.quantity }} = ৳ {{ item.get_subtotal }}</small> -->
-                                <small><small>৳ </small>{{ item.price }}</small><br>
-                                <small>Qty: {{ item.quantity }}</small>
-                            </div>
-                        </div>
-                        {% endfor %}
+                        <button class="btn btn-sm btn-outline-primary toggle-details" data-target="#details-{{ order.id }}">
+                            View Details
+                        </button>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Column: Order Details -->
+        <div class="col-md-8">
+            {% for order in orders %}
+            <div class="order-details card shadow-sm p-3 mb-3 d-none" id="details-{{ order.id }}">
+<!-- ---------------------------------------  Admin Action Buttons -------------------------------------- -->
+
+                <div class="mb-3 d-flex justify-content-end gap-2">
+                    {% if order.status == "Pending" %}
+                        <button class="btn btn-sm btn-success update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Received">
+                            Mark as Received
+                        </button>
+
+                        <button class="btn btn-sm btn-danger update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Cancelled">
+                            Cancel
+                        </button>
+
+                    {% elif order.status == "Received" %}
+                        <button class="btn btn-sm btn-primary update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Shipped">
+                            Mark as Shipped
+                        </button>
+
+                        <button class="btn btn-sm btn-danger update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Cancelled">
+                            Cancel
+                        </button>
+
+                    {% elif order.status == "Shipped" %}
+                        <span class="badge bg-success">Shipped (Locked)</span>
+
+                    {% elif order.status == "Cancelled" %}
+                        <span class="badge bg-danger">Cancelled</span>
+                    {% endif %}
+
+                </div>
+
+                <div class="mb-4 d-flex justify-content-between">
+                    <div class="text">
+                        <strong>Name: </strong>{{ order.user }} <br>
+                        <strong>Address: </strong>{{ order.address }}<br>
+                    </div>
+                    <div class="test">
+                        {{ order.phone }}<br>
+                        {{ order.delivery_date }}
+                    </div>
+                </div>
+
+                {% for item in order.items.all %}
+                <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:50px; height:50px; object-fit:contain;">
+                        {% endif %}
+                        <p class="mb-0">{{ item.product.name }}</p>
+                    </div>
+                    <div class="text-end">
+                        <small>৳ {{ item.price }}</small><br>
+                        <small>Qty: {{ item.quantity }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+                <p class="text-end"> Total: ৳ {{ order.total_amount }}</p>
             </div>
             {% endfor %}
         </div>
+    </div>
     {% else %}
-        <p class="text-muted">You have not placed any orders yet.</p>
+    <p class="text-muted">You have not placed any orders yet.</p>
     {% endif %}
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ------------------------------
+    // Toggle order details
+    // ------------------------------
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('toggle-details')) {
+
+            const btn = e.target;
+            const targetId = btn.dataset.target;
+            const details = document.querySelector(targetId);
+
+            if (details.classList.contains('d-none')) {
+                details.classList.remove('d-none');
+                btn.textContent = 'Hide Details';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-warning');
+            } else {
+                details.classList.add('d-none');
+                btn.textContent = 'View Details';
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-primary');
+            }
+        }
+    });
+
+
+    // -----------------------------
+    // Admin: Update order status
+    // -----------------------------
+    document.addEventListener('click', function(e) {
+
+        if (!e.target.classList.contains('update-status')) return;
+
+        const button = e.target;
+        const orderId = button.dataset.orderId;
+        const newStatus = button.dataset.status;
+        const container = button.closest('.mb-3');
+
+        if (!confirm("Change status to " + newStatus + "?")) return;
+
+        fetch("{% url 'update_order_status' 0 %}".replace('/0/', '/' + orderId + '/'), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'status=' + newStatus
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.success) {
+                alert("Error: " + data.error);
+                return;
+            }
+
+            // Clear current buttons
+            container.innerHTML = "";
+
+            // -------- Dynamic UI --------
+
+            if (data.status === "Pending") {
+                container.innerHTML = `
+                    <button class="btn btn-sm btn-success update-status"
+                            data-order-id="${orderId}"
+                            data-status="Received">
+                        Mark as Received
+                    </button>
+                    <button class="btn btn-sm btn-danger update-status"
+                            data-order-id="${orderId}"
+                            data-status="Cancelled">
+                        Cancel
+                    </button>
+                `;
+            }
+
+            else if (data.status === "Received") {
+                container.innerHTML = `
+                    <button class="btn btn-sm btn-primary update-status"
+                            data-order-id="${orderId}"
+                            data-status="Shipped">
+                        Mark as Shipped
+                    </button>
+                    <button class="btn btn-sm btn-danger update-status"
+                            data-order-id="${orderId}"
+                            data-status="Cancelled">
+                        Cancel
+                    </button>
+                `;
+            }
+
+            else if (data.status === "Shipped") {
+                container.innerHTML = `
+                    <span class="badge bg-success">Shipped (Locked)</span>
+                `;
+            }
+
+            else if (data.status === "Cancelled") {
+                container.innerHTML = `
+                    <span class="badge bg-danger">Cancelled</span>
+                `;
+            }
+
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Product out of stock. Cannot mark as shipped.");
+        });
+
+    });
+
+});
+</script>
+<style>
+.order-details img {
+    border-radius: 5px;
+}
+</style>
 {% endblock %}

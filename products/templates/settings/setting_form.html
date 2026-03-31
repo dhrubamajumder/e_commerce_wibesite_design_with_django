@@ -2,6 +2,7 @@
 
 {% block content %}
 
+
 <div class="container my-4">
     <div class="card shadow-sm">
         <div class="card-body">
@@ -64,7 +65,7 @@
                     </div>
 
                     <!-- Token or Table -->
-                    <div class="col-md-6">
+                    {% comment %} <div class="col-md-6">
                         <label class="form-label">Token or Table <span class="text-danger">*</span></label>
                         <select class="form-select" name="token_or_table">
                             <option value="table" {% if form.token_or_table.value == "table" %}selected{% endif %}>Table</option>
@@ -79,7 +80,7 @@
                             <option value="pay_last" {% if form.payment_type.value == "pay_last" %}selected{% endif %}>Pay Last</option>
                             <option value="pay_first" {% if form.payment_type.value == "pay_first" %}selected{% endif %}>Pay First</option>
                         </select>
-                    </div>
+                    </div> {% endcomment %}
 
 
                     <!-- website -->

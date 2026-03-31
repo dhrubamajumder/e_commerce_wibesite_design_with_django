@@ -40,8 +40,14 @@
                                 <span class="badge bg-danger">
                                     {{ item.stock.quantity }}
                                 </span>
+                            {% elif item.stock.quantity <= 10 %}
+                                <span class="badge bg-warning text-dark">
+                                    {{ item.stock.quantity }}
+                                </span>
                             {% else %}
-                                {{ item.stock.quantity }}
+                                <span class="badge bg-primary">
+                                    {{ item.stock.quantity }}
+                                </span>
                             {% endif %}
                         </td>
 

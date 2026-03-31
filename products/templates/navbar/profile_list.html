@@ -1,0 +1,93 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+<div class="container my-5">
+    <h2 class="mb-4 text-center">My Profile</h2>
+
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <div class="card shadow-sm p-4">
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Profile Image -->
+                    <div class="text-center mb-4">
+                        {% if profile.image %}
+                            <img src="{{ profile.image.url }}" 
+                                 class="rounded-circle mb-3"
+                                 width="120" height="120"
+                                 style="object-fit: cover;">
+                        {% else %}
+                            <img src="https://via.placeholder.com/120"
+                                 class="rounded-circle mb-3">
+                        {% endif %}
+
+                        
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{{ request.user.username }}"
+                               readonly>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email"
+                               class="form-control"
+                               value="{{ request.user.email }}"
+                               readonly>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text"
+                               name="phone"
+                               class="form-control"
+                               value="{{ profile.phone|default_if_none:'' }}"
+                               
+                               readonly>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="address"
+                                  class="form-control"
+                                  rows="2"
+                                  readonly>{{ profile.address|default_if_none:'' }}</textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'profile_update' %}" class="btn btn-outline-primary">
+                            Edit Profile
+                        </a>
+                        
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

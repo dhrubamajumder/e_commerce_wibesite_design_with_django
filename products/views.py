@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock
+from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock, Profile
 from . forms import ProductForm, SystemSettingsForm, CustomerForm, PurchaseForm, PurchaseItemForm
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from .models import Product
@@ -10,8 +9,10 @@ import json
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.forms import modelformset_factory
-from django.db.models import Sum
-
+from django.db.models import Sum , F
+from django.http import HttpResponseForbidden, JsonResponse
+from django.views.decorators.http import require_POST
+from django.db import transaction
 
 
 def dashboard_redirect(request):
@@ -34,10 +35,6 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
 
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def admin_profile(request):
-    return render(request, 'admin/profile.html')
 
 
 @login_required
@@ -53,6 +50,7 @@ def category_create(request):
         name = request.POST.get('name')
         description = request.POST.get('description')
         Category.objects.create(name=name, description=description)
+        messages.success(request, "Category created successfully ✅")
         return redirect('category_list')
     return render(request, 'category/category_form.html')
 
@@ -71,10 +69,11 @@ def topbar_list(request, category_id=None):
     return render(request, 'navbar/topbar.html', context)
 
 # -------------------------------------------   Product Views  -------------------------------------
+
 def product_list(request, category_id=None):
     categorys = Category.objects.all()
     search_query = request.GET.get('q')  
-    products = Product.objects.all()
+    products = Product.objects.filter(stock__quantity__gt=0)  # ✅ Only products with stock
     # Category filter
     if category_id:
         products = products.filter(category_id=category_id)
@@ -85,13 +84,12 @@ def product_list(request, category_id=None):
             Q(description__icontains=search_query)
         )
     products = products.order_by('-id')
-    # ✅ Wishlist products (only if logged in)
+    # Wishlist products (only if logged in)
     wishlist_products = []
     if request.user.is_authenticated:
         wishlist_products = Wishlist.objects.filter(
             user=request.user
         ).values_list('product_id', flat=True)
-        
     context = {
         'products': products,
         'categorys': categorys,
@@ -99,8 +97,13 @@ def product_list(request, category_id=None):
         'wishlist_products': wishlist_products,
         'search_query': search_query  
     }
-
     return render(request, 'product/product_list.html', context)
+
+
+def stock_lists(request):
+    stocks = Stock.objects.select_related('product').all()
+    context = {'stocks': stocks}
+    return render(request, 'stock/product_stock_list.html', context)
 
 
 def stock_list(request):
@@ -161,7 +164,7 @@ def product_create(request):
         if form.is_valid():
             form.save()
             print('save')
-            messages.success(request, "✅ Product added successfully")
+            messages.success(request, "Product added successfully ✅")
             return redirect('product_list')
         else:
             print(form.errors)   # 👈 ADD THIS
@@ -489,7 +492,6 @@ def cart_list(request):
 
         order = Order.objects.create(
             user=request.user,
-            full_name=full_name,
             phone=phone,
             address=address,
             delivery_date=delivery_date,
@@ -510,7 +512,7 @@ def cart_list(request):
         cart_items.delete()
 
         messages.success(request, "Order placed successfully!")
-        return redirect("cart_details_list")
+        return redirect("user_order_list")
 
     return render(request, "cart_list.html", {
         "cart_items": cart_items,
@@ -522,18 +524,77 @@ def cart_list(request):
 #     return render(request, "product/cart_details_list.html", {"orders": orders})
 
 @login_required
-def cart_details_list(request):
+def user_order_list(request):
     orders = Order.objects.filter(user=request.user).order_by('-id')
-    for order in orders:
-        return render(request, "product/cart_details_list.html", {"orders": orders})
+    return render(request, "product/user_order_list.html", {"orders": orders})
+
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    if order.status != 'Cancelled':
+        order.status = 'Cancelled'
+        order.save()  # Stock will be restored if Shipped
+        messages.success(request, "Order canceled successfully.")
+    else:
+        order.status = 'Pending'
+        order.save()  # Undo cancel, stock logic handled in save()
+        messages.success(request, "Order restored successfully.")
+    return redirect('user_order_list')
 
 
-def order_list(request):
-    orders = Order.objects.all().order_by('delivery_date')
-    return render(request, "admin/order_list.html", {"orders": orders})
+@login_required
+def admin_order_list(request):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("You are not allowed here")
+    orders = Order.objects.exclude(status='canceled').order_by('-id')
+    return render(request, 'admin/order_list.html', {'orders': orders})
 
 
+@login_required
+@require_POST
+def update_order_status(request, order_id):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+    order = get_object_or_404(Order, id=order_id)
+    new_status = request.POST.get('status')
+    if order.status == 'Shipped':
+        return JsonResponse({
+            'error': 'Order already shipped. Status cannot be changed.'
+        }, status=400)
 
+    if new_status not in dict(Order.STATUS_CHOICES):
+        return JsonResponse({'error': 'Invalid status'}, status=400)
+    
+    # ==============================
+    #      STOCK CHECK BEFORE SHIPPED
+    # ==============================
+    if new_status == 'Shipped':
+        for item in order.items.select_related('product__stock'):
+            stock = item.product.stock
+            if stock.quantity < item.quantity:
+                return JsonResponse({
+                    'error': f"Not enough stock for {item.product.name}"
+                }, status=400)
+        with transaction.atomic():
+            for item in order.items.select_related('product__stock'):
+                item.product.stock.quantity = F('quantity') - item.quantity
+                item.product.stock.save()
+            order.status = 'Shipped'
+            order.save()
+        return JsonResponse({
+            'success': True,
+            'status': order.status
+        })
+    # ==============================
+    # NORMAL STATUS UPDATE
+    # ==============================
+    order.status = new_status
+    order.save()
+    return JsonResponse({
+        'success': True,
+        'status': order.status
+    })
+    
 
 @login_required
 def offcanvas(request):
@@ -596,8 +657,39 @@ def contact(request):
 def faq(request):
     return render(request, 'navbar/faq.html')
 
-def profile(request):
-    return render(request, 'navbar/profile.html')
+# --------------------------------------------  Profile  --------------------------------
+@login_required
+def profile_list(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    return render(request, 'navbar/profile_list.html', {'profile': profile})
+
+def profile_update(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        profile.phone = request.POST.get('phone')
+        profile.address = request.POST.get('address')
+        if request.FILES.get('image'):
+            profile.image = request.FILES.get('image')
+        profile.save()
+        messages.success(request, "Profile updated successfully ✅")
+        return redirect('profile_list')  
+    return render(request, 'navbar/profile_update.html', {'profile': profile})
+
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_profile(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        profile.phone = request.POST.get('phone')
+        profile.address = request.POST.get('address')
+        if request.FILES.get('image'):
+            profile.image = request.FILES.get('image')
+        profile.save()
+        return redirect('admin_profile')  
+    return render(request, 'admin/profile.html', {'profile': profile})
+
 
 def demo(request):
     return render(request, 'demo.html')
@@ -689,6 +781,7 @@ def setting_create(request):
                 instance.logo.delete(save=False)
                 instance.logo = None
             instance.save()
+            messages.success(request, "System settings created successfully ✅")
             return redirect('settings_list')
     else:
         form = SystemSettingsForm()
@@ -700,19 +793,24 @@ def setting_create(request):
 @login_required(login_url='/login/')
 def setting_update(request, pk):
     settings_update = get_object_or_404(SystemSettings, pk=pk)
+
     if request.method == "POST":
-        form = SystemSettingsForm(request.POST, request.FILES)
+        form = SystemSettingsForm(request.POST, request.FILES, instance=settings_update)  # ✅ instance যোগ করা হয়েছে
         if form.is_valid():
             instance = form.save(commit=False)
             if request.POST.get('delete_logo') and instance.logo:
                 instance.logo.delete(save=False)
                 instance.logo = None
+
             instance.save()
+            messages.success(request, "System settings updated successfully ✅")
             return redirect('settings_list')
     else:
         form = SystemSettingsForm(instance=settings_update)
-    return render(request, 'settings/setting_form.html', {'form':form, 'title':'Update System Settings'})
-
+    return render(request, 'settings/setting_form.html', {
+        'form': form,
+        'title': 'Update System Settings'
+    })
 
 
 

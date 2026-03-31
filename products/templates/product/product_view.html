@@ -39,7 +39,10 @@
                     <h3>{{ product.name }}</h3>
                     <p>Price: {{ product.product_price }}</p>
                     <p>{{ product.description }}</p>
-                    <a href="#" class="btn btn-secondary">Buy Now</a>
+                    <button class="btn btn-secondary add-to-cart w-30"
+                            data-id="{{ product.id }}" data-url="{% url 'add_to_cart' product.id %}">
+                        Buy Now
+                    </button>
                     <button class="btn btn-primary add-to-cart w-30"
                             data-id="{{ product.id }}" data-url="{% url 'add_to_cart' product.id %}">
                         Add to Cart

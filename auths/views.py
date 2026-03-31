@@ -17,7 +17,7 @@ def register_view(request):
             email=form.cleaned_data['email'],
             password=form.cleaned_data['password1']
         )
-        return redirect('login')
+        return redirect('user_login')
     return render(request, 'auths/register.html', {'form': form})
 
 
@@ -63,7 +63,7 @@ def admin_login_view(request):
             return redirect('admin_dashboard')
 
         else:
-            return render(request, 'auths/admin_login.html', {
+            return render(request, 'admin/admin_login.html', {
                 'error': "Invalid username or password"
             })
 
