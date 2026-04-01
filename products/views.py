@@ -193,6 +193,7 @@ def content(request):
 # --------------------------------------------------------------------------------------
 # -----------------------------     Cart      ------------------------------------------
 # --------------------------------------------------------------------------------------
+
 def update_cart(request):
     if request.method != "POST":
         return JsonResponse({"status": "fail"})
@@ -203,15 +204,14 @@ def update_cart(request):
 
     # ================= Login user =================
     if request.user.is_authenticated:
-        # সর্বশেষ cart নাও, যদি না থাকে create করো
         cart = Cart.objects.filter(user=request.user).order_by('-created_at').first()
         if not cart:
             cart = Cart.objects.create(user=request.user)
 
         try:
-            cart_item = CartItem.objects.get(cart=cart, product_id=item_id)
+            cart_item = CartItem.objects.get(id=item_id)
+            cart = cart_item.cart
         except CartItem.DoesNotExist:
-            # Increment action এ না থাকলে 404 return করো
             return JsonResponse({"status": "fail", "message": "Cart item not found"}, status=404)
 
         if action == "inc":
