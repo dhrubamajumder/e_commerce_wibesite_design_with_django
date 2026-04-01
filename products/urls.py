@@ -6,20 +6,9 @@ from . import views
 urlpatterns = [
     
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
-    path('admin-dashboards/', views.admin_dashboard, name='admin_dashboard'),
-    
-    path('category/list/', views.category_list, name='category_list'),
-    path('category/create/', views.category_create, name='category_create'),
-    
-    path('products/', views.product, name='product'),
     path('', views.product_list, name='product_list'),
-    path('products/<int:category_id>/', views.product_list, name='product_by_category'),
-    
-    path('product/create/', views.product_create, name='product_create'),
     path('product/<int:id>/', views.product_detail, name='product_detail'),
     path('content/', views.content, name='content'),
-    
-    path('stock/', views.stock_list, name='stock_list'),
     
     path('cart/', views.cart_list, name='cart_list'),
     path('get-cart-items/', views.get_cart_items, name='get_cart_items'),
@@ -27,8 +16,6 @@ urlpatterns = [
     path("cart-items-json/", views.cart_items_json, name="cart_items_json"),
     path('order-details/', views.user_order_list, name='user_order_list'),
     path('order-details/cancel/<int:order_id>/', views.cancel_order, name='cancel_order'),
-    path('order-list/', views.admin_order_list, name='admin_order_list'),
-    path('order-list/<int:order_id>/update-status/', views.update_order_status, name='update_order_status'),
     
     path('cart/json/', views.cart_json, name='cart_json'),
     
@@ -37,7 +24,6 @@ urlpatterns = [
     path('remove-item/<int:pk>/', views.remove_item, name="remove_item"),
     
     path('canvas/', views.offcanvas, name='offcanvas'),
-    
     path("wishlist/<int:product_id>/", views.toggle_wishlist, name="toggle_wishlist"),
     path("wishlist/", views.wishlist_view, name="wishlist"),
     
@@ -51,25 +37,41 @@ urlpatterns = [
     
     path('profile-list/', views.profile_list, name='profile_list'),
     path('profile/update/', views.profile_update, name='profile_update'),
-    path('admin-profile/', views.admin_profile, name='admin_profile'),
-    
     path('demo/', views.demo, name='demo'),
     
-    path('supplier/', views.supplier_list, name='supplier'),
-    path('supplier/create/', views.supplier_create, name='supplier_create'),
-    path('supplier/<int:id>/', views.supplier_update, name='supplier_update'),
-    path('supplier/<int:id>/delete/', views.supplier_delete, name='supplier_delete'),
+    #----------------------------------------------------------------------------
+    #------------------------------   Admin URLs   ------------------------------
+    #----------------------------------------------------------------------------
     
-    path('settings/list/', views.settings_list, name='settings_list'),
-    path('setting/create/', views.setting_create, name='setting_create'),
-    path('settins/update/<int:pk>/', views.setting_update, name='settings_update'),
+    path('admin-dashboards/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-panel/category/list/', views.category_list, name='category_list'),
+    path('admin-panel/category/create/', views.category_create, name='category_create'),
+    path('admin-panel/products/', views.product, name='product'),
+    path('admin-panel/products/<int:category_id>/', views.product_list, name='product_by_category'),
+    path('admin-panel/product/create/', views.product_create, name='product_create'),
+    path('admin-panel/stock/', views.stock_list, name='stock_list'),
+    
+    path('admin-panel/order-list/', views.admin_order_list, name='admin_order_list'),
+    path('admin-panel/order-list/<int:order_id>/update-status/', views.update_order_status, name='update_order_status'),
+    
+    path('admin-panel/profile/list/', views.admin_profile_list, name='admin_profile_list'),
+    path('admin-panel/profile/update/', views.admin_profile_update, name='admin_profile_update'),
+    
+    path('admin-panel/supplier/', views.supplier_list, name='supplier'),
+    path('admin-panel/supplier/create/', views.supplier_create, name='supplier_create'),
+    path('admin-panel/supplier/<int:id>/', views.supplier_update, name='supplier_update'),
+    path('admin-panel/supplier/<int:id>/delete/', views.supplier_delete, name='supplier_delete'),
+    
+    path('admin-panel/settings/list/', views.settings_list, name='settings_list'),
+    path('admin-panel/setting/create/', views.setting_create, name='setting_create'),
+    path('admin-panel/settings/update/<int:pk>/', views.setting_update, name='settings_update'),
         
-    path('customer/', views.customer_list, name='customer'),
-    path('customer/create/', views.customer_create, name='customer_create'),
-    path('customer/update/<int:pk>/', views.customer_update, name='customer_update'),
-    path('customer/delete/<int:pk>/', views.customer_delete, name='customer_delete'),
+    path('admin-panel/customer/', views.customer_list, name='customer'),
+    path('admin-panel/customer/create/', views.customer_create, name='customer_create'),
+    path('admin-panel/customer/update/<int:pk>/', views.customer_update, name='customer_update'),
+    path('admin-panel/customer/delete/<int:pk>/', views.customer_delete, name='customer_delete'),
     
-    path('purchases/', views.purchase_list, name='purchase_list'),
-    path('purchases/create/', views.purchase_create, name='purchase_create'),
+    path('admin-panel/purchases/', views.purchase_list, name='purchase_list'),
+    path('admin-panel/purchases/create/', views.purchase_create, name='purchase_create'),
     
 ]

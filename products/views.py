@@ -525,7 +525,7 @@ def cart_list(request):
 
 @login_required
 def user_order_list(request):
-    orders = Order.objects.filter(user=request.user).order_by('-id')
+    orders = (Order.objects.filter(user=request.user).order_by('-id').annotate(total_qty=Sum('items__quantity')))
     return render(request, "product/user_order_list.html", {"orders": orders})
 
 @login_required
@@ -546,7 +546,7 @@ def cancel_order(request, order_id):
 def admin_order_list(request):
     if not request.user.is_staff:
         return HttpResponseForbidden("You are not allowed here")
-    orders = Order.objects.exclude(status='canceled').order_by('-id')
+    orders = (Order.objects.exclude(status='canceled').order_by('-id').annotate(total_qty=Sum('items__quantity')))
     return render(request, 'admin/order_list.html', {'orders': orders})
 
 
@@ -663,6 +663,7 @@ def profile_list(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     return render(request, 'navbar/profile_list.html', {'profile': profile})
 
+@login_required
 def profile_update(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     if request.method == "POST":
@@ -676,10 +677,15 @@ def profile_update(request):
     return render(request, 'navbar/profile_update.html', {'profile': profile})
 
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_profile_list(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    return render(request, 'admin/profile_list.html', {'profile': profile})
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_profile(request):
+def admin_profile_update(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     if request.method == "POST":
         profile.phone = request.POST.get('phone')
@@ -687,7 +693,8 @@ def admin_profile(request):
         if request.FILES.get('image'):
             profile.image = request.FILES.get('image')
         profile.save()
-        return redirect('admin_profile')  
+        messages.success(request, "Profile updated successfully ✅")
+        return redirect('admin_profile_list')   
     return render(request, 'admin/profile.html', {'profile': profile})
 
 

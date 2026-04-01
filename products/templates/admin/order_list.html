@@ -14,7 +14,18 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <strong>Order #{{ order.id }}</strong><br>
-                            <small>৳ {{ order.total_amount }} | {{ order.delivery_date }}</small>
+                            <span class="btn btn-sm 
+                                {% if order.status == 'Cancelled' %} btn-danger
+                                {% elif order.status == 'Shipped' %} btn-success
+                                {% elif order.status == 'Received' %} btn-primary
+                                {% elif order.status == 'Pending' %} btn-warning
+                                {% endif %}"
+                                style="pointer-events: none;">
+                                {{ order.status|title }}
+                            </span><br>
+
+                            <small>৳ {{ order.total_amount }} | Qty: {{ order.total_qty }}</small><br>
+                            <small> {{ order.delivery_date }}</small><br>
                         </div>
                         <button class="btn btn-sm btn-outline-primary toggle-details" data-target="#details-{{ order.id }}">
                             View Details
@@ -33,10 +44,15 @@
 
                 <div class="mb-3 d-flex justify-content-end gap-2">
                     {% if order.status == "Pending" %}
+                        <button class="btn btn-sm btn-secondary update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Pending" disabled>
+                            Pending
+                        </button>
                         <button class="btn btn-sm btn-success update-status"
                                 data-order-id="{{ order.id }}"
                                 data-status="Received">
-                            Mark as Received
+                            Received
                         </button>
 
                         <button class="btn btn-sm btn-danger update-status"
@@ -46,10 +62,15 @@
                         </button>
 
                     {% elif order.status == "Received" %}
+                        <button class="btn btn-sm btn-secondary update-status"
+                                data-order-id="{{ order.id }}"
+                                data-status="Received" disabled>
+                            Received
+                        </button>
                         <button class="btn btn-sm btn-primary update-status"
                                 data-order-id="{{ order.id }}"
                                 data-status="Shipped">
-                            Mark as Shipped
+                            Shipped
                         </button>
 
                         <button class="btn btn-sm btn-danger update-status"
@@ -168,10 +189,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.status === "Pending") {
                 container.innerHTML = `
+                    
                     <button class="btn btn-sm btn-success update-status"
                             data-order-id="${orderId}"
                             data-status="Received">
-                        Mark as Received
+                        Received
                     </button>
                     <button class="btn btn-sm btn-danger update-status"
                             data-order-id="${orderId}"
@@ -186,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="btn btn-sm btn-primary update-status"
                             data-order-id="${orderId}"
                             data-status="Shipped">
-                        Mark as Shipped
+                        Shipped
                     </button>
                     <button class="btn btn-sm btn-danger update-status"
                             data-order-id="${orderId}"

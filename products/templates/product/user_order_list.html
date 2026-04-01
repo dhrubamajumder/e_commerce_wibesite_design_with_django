@@ -27,7 +27,18 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <strong>Order #{{ order.id }}</strong><br>
-                            <small>৳ {{ order.total_amount }} | {{ order.delivery_date }}</small>
+                            <span class="btn btn-sm 
+                                {% if order.status == 'Cancelled' %} btn-danger
+                                {% elif order.status == 'Shipped' %} btn-success
+                                {% elif order.status == 'Received' %} btn-primary
+                                {% elif order.status == 'Pending' %} btn-warning
+                                {% endif %}"
+                                style="pointer-events: none;">
+                                {{ order.status|title }}
+                            </span><br>
+
+                            <small>৳ {{ order.total_amount }} | Qty: {{ order.total_qty }}</small><br>
+                            <small> {{ order.delivery_date }}</small><br>
                         </div>
                         <button class="btn btn-sm btn-outline-primary toggle-details" data-target="#details-{{ order.id }}">
                             View Details
@@ -43,7 +54,16 @@
             {% for order in orders %}
             <div class="order-details card shadow-sm p-3 mb-3 d-none" id="details-{{ order.id }}">
                 <p class="d-flex justify-content-end">
-                    <strong>Status : </strong><span class="status-text">{{ order.status|title }}</span>
+                    <strong>Status : </strong>
+                    <span class="btn btn-sm 
+                        {% if order.status == 'Cancelled' %} btn-danger
+                        {% elif order.status == 'Shipped' %} btn-success
+                        {% elif order.status == 'Received' %} btn-primary
+                        {% elif order.status == 'Pending' %} btn-warning
+                        {% endif %}"
+                        style="pointer-events: none;">
+                        {{ order.status|title }}
+                    </span>
                 </p>
                 <div class="mb-2 d-flex justify-content-between">
                     <div class="text">
