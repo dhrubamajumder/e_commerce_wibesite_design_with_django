@@ -17,7 +17,7 @@
         <div class="brand">
             <a href="#">
                 <i class="bi bi-cart4"></i>
-                <span>e-commerce</span>
+                <span class="menu-text">e-commerce</span>
             </a>
         </div>
 
@@ -27,14 +27,14 @@
 
         <a href="{% url 'admin_dashboard' %}">
             <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
+            <span class="menu-text">Dashboard</span>
         </a>
 
 
 
         <a href="{% url 'admin_order_list' %}">
             <i class="bi bi-cart"></i>
-            <span>Orders</span>
+            <span class="menu-text">Orders</span>
         </a>
         
         {% with request.resolver_match.url_name as url_name %}
@@ -52,7 +52,7 @@
                 </div>
 
                 <!-- Right Side Chevron -->
-                <span><i class="bi bi-chevron-down rotate-icon"></i></span>
+                <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
 
             <div class="collapse {% if url_name in 'purchase_create purchase_list purchase_return' %}show{% endif %}" id="purchaseMenu">
@@ -91,7 +91,7 @@
             </div>
 
             <!-- Right Side Chevron -->
-            <span><i class="bi bi-chevron-down rotate-icon"></i></span>
+            <i class="bi bi-chevron-down rotate-icon"></i>
             </a>    
 
             <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_list' %}show{% endif %}" id="reportMenu">
@@ -129,7 +129,7 @@
                 </div>
 
                 <!-- Right Side Chevron -->
-                <span><i class="bi bi-chevron-down rotate-icon"></i></span>
+                <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
 
             <div class="collapse {% if url_name in 'product_create product_list category_create category_list' %}show{% endif %}" id="productMenu">
@@ -159,7 +159,7 @@
                 </div>
 
                 <!-- Right Side Chevron -->
-                <span><i class="bi bi-chevron-down rotate-icon"></i></span>
+                <i class="bi bi-chevron-down rotate-icon"></i>
             </a>
 
             <div class="collapse {% if url_name in 'supplier customer settings_list' %}show{% endif %}" id="basicSettingsMenu">
