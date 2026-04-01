@@ -42,10 +42,26 @@ body {
     color: #fff;
 }
 
-/* Hide text when collapsed */
-.sidebar.collapsed a span {
+/* Hide menu text when sidebar is collapsed */
+.sidebar.collapsed .menu-text {
     display: none;
 }
+
+/* Hide the chevron when sidebar is collapsed */
+.sidebar.collapsed .rotate-icon {
+    display: none !important;
+}
+
+/* Center the main icon */
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+}
+
+/* Remove right margin from icon when collapsed */
+.sidebar.collapsed .nav-link i {
+    margin-right: 0 !important;
+}
+
 
 /* Search box in sidebar */
 .search-box {

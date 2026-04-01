@@ -43,7 +43,7 @@ urlpatterns = [
     #------------------------------   Admin URLs   ------------------------------
     #----------------------------------------------------------------------------
     
-    path('admin-dashboards/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-panel/dashboards/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-panel/category/list/', views.category_list, name='category_list'),
     path('admin-panel/category/create/', views.category_create, name='category_create'),
     path('admin-panel/products/', views.product, name='product'),
