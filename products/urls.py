@@ -74,4 +74,17 @@ urlpatterns = [
     path('admin-panel/purchases/', views.purchase_list, name='purchase_list'),
     path('admin-panel/purchases/create/', views.purchase_create, name='purchase_create'),
     
+    path('admin-panel/user/list/', views.user_list, name='user_list'),
+    path('admin-panel/user/create/', views.add_user, name='user_create'),
+    path('admin-panel/user/update/<int:id>/', views.edit_user, name='user_update'),
+    path('admin-panel/user/delete/<int:id>/', views.delete_user, name='user_delete'),
+
+    path('admin-panel/permission/list/', views.permission_list, name='permission_list'),
+    path('admin-panel/permission/create/', views.permission_create, name='permission_create'),
+    
+    path('admin-panel/role/list/', views.role_list, name='role_list'),
+    path('admin-panel/role/create/', views.role_create, name='role_create'),
+    path('admin-panel/role/<int:role_id>/update/', views.role_update, name='role_update'),
+    path('admin-panel/role/<int:pk>/delete/', views.role_delete, name='role_delete'),
+
 ]

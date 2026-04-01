@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock, Profile
-from . forms import ProductForm, SystemSettingsForm, CustomerForm, PurchaseForm, PurchaseItemForm
+from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock, Profile, Role, Permission, UserProfile
+from . forms import ProductForm, SystemSettingsForm, CustomerForm, PurchaseForm, PurchaseItemForm, RoleForm, PermissionForm
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.contrib.auth.models import User
 from .models import Product
 import json
 from django.db.models import Q
@@ -13,6 +14,9 @@ from django.db.models import Sum , F
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from .decorators import get_role_permissions, admin_required, staff_or_admin_required, get_role_permissions, role_permission_required
+from collections import defaultdict
+
 
 
 def dashboard_redirect(request):
@@ -974,3 +978,210 @@ def purchase_create(request):
         'products': Product.objects.all(),
     }
     return render(request, 'purchase/purchase_form.html', context)
+
+
+
+# ----------------------------------------------------------------------------------
+# -------------------------------         User  List     ---------------------------
+# ----------------------------------------------------------------------------------
+
+def user_list(request):
+    users = (
+        User.objects
+        .filter(is_active=True)
+        .select_related('userprofile')   # 🔥 role fast load
+        .order_by('-id')
+    )
+    return render(request, 'user/user_list.html', {
+        'users': users,
+    })
+    
+
+@login_required(login_url='/login/')
+def add_user(request):
+    roles = Role.objects.all()
+    superuser_role = Role.objects.filter(name='superuser').first()
+    superuser_exists = False
+    if superuser_role:
+        superuser_exists = UserProfile.objects.filter(role=superuser_role).exists()
+    if request.method == 'POST':
+        username = request.POST['username'].strip()
+        email = request.POST['email'].strip()
+        password = request.POST['password']
+        role_id = request.POST.get('role')
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already registered.")
+            return redirect('add_user')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect('add_user')
+        if (
+            superuser_role and
+            role_id and
+            int(role_id) == superuser_role.id and
+            superuser_exists):
+            messages.error(request, "Superuser already exists. Cannot create another one.")
+            return redirect('add_user')
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password)
+        role = Role.objects.get(id=role_id) if role_id else None
+        UserProfile.objects.create(user=user, role=role)
+        messages.success(request, "User created successfully!")
+        return redirect('user_list')
+    return render(request,'user/add_user.html',{'roles': roles,'superuser_exists': superuser_exists})
+
+
+@login_required(login_url='/login/')
+def edit_user(request, id):
+    target_user = User.objects.get(id=id)
+    superuser_role = Role.objects.filter(name='SuperUser').first()
+    superuser_exists = False
+    if superuser_role:
+        superuser_exists = UserProfile.objects.filter(role=superuser_role).exclude(user=target_user).exists()
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST.get('password')
+        role_id = request.POST.get('role')
+        target_user.username = username
+        target_user.email = email
+        if password:
+            target_user.set_password(password)
+        target_user.save()
+        if role_id:
+            selected_role = Role.objects.get(id=role_id)
+            if selected_role.name == 'SuperUser' and superuser_exists:
+                messages.error(request, "Superuser role is already assigned. Cannot assign again.")
+                return redirect('edit_user', user_id=id)
+
+            profile, created = UserProfile.objects.get_or_create(user=target_user)
+            profile.role = selected_role
+            profile.save()
+
+
+        messages.success(request, "User updated successfully!")
+        return redirect('user_list')
+    roles = Role.objects.all()
+    if superuser_role and superuser_exists:
+        roles = roles.exclude(id=superuser_role.id)
+    return render(request, 'user/add_user.html', {'roles': roles,'target_user': target_user,'superuser_exists': superuser_exists})
+
+
+@login_required(login_url='/login/')
+def delete_user(request, id):
+    user = get_object_or_404(User, id=id)
+    if request.method == 'POST':
+        user.delete()
+        return redirect('user_list')
+    
+
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
+
+@login_required(login_url='/login/')
+@role_permission_required('role_view')
+def role_list(request):
+    roles = Role.objects.all().order_by('-id')
+    role, permissions, permissions_list = get_role_permissions(request.user)
+    return render(request, 'role/role_list.html', {'roles':roles, 'permissions':permissions, 'permissions_list':permissions_list})
+
+
+
+@login_required(login_url='/login/')
+@role_permission_required('role_create')
+def role_create(request):
+    if request.method == "POST":
+        form = RoleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('role_list')
+    else:
+        form = RoleForm()
+    # Permissions group & sort by name sequence
+    permissions = Permission.objects.all()
+    grouped_permissions = defaultdict(list)
+    sequence = ['view', 'create', 'update', 'delete']  # desired order
+    for perm in permissions:
+        grouped_permissions[perm.group].append(perm)
+    # Sort each group's permissions according to sequence using 'name'
+    for group, perms in grouped_permissions.items():
+        grouped_permissions[group] = sorted(
+            perms,
+            key=lambda p: next((i for i, s in enumerate(sequence) if s in p.name.lower()), 99))
+    context = {
+        'form': form,
+        'grouped_permissions': dict(grouped_permissions)}
+    return render(request, 'role/role_form.html', context)
+
+
+
+@login_required(login_url='/login/')
+@role_permission_required('role_update')
+def role_update(request, role_id):
+    role_instance = get_object_or_404(Role, id=role_id)
+    if request.method == "POST":
+        form = RoleForm(request.POST, instance=role_instance)
+        if form.is_valid():
+            role = form.save(commit=False)
+            role.save()
+            # Update permissions manually from POST
+            selected_permissions = request.POST.getlist('permissions')
+            role.permissions.set(selected_permissions)  # overwrite existing
+            messages.success(request, "✅ Role updated successfully")
+            return redirect('role_list')
+    else:
+        form = RoleForm(instance=role_instance)
+    # Group all permissions for display, sorted by sequence
+    permissions_all = Permission.objects.all()
+    grouped_permissions = defaultdict(list)
+    sequence = ['view', 'create', 'update', 'delete']
+    for perm in permissions_all:
+        grouped_permissions[perm.group].append(perm)
+    for group, perms in grouped_permissions.items():
+        grouped_permissions[group] = sorted(
+            perms,
+            key=lambda p: next((i for i, s in enumerate(sequence) if s in p.name.lower()), 99)
+        )
+    # Get current user permissions for template control
+    _, permissions, permissions_list = get_role_permissions(request.user)
+    current_perm_ids = set(role_instance.permissions.values_list('id', flat=True))
+    context = {
+        'form': form,
+        'role': role_instance,
+        'grouped_permissions': dict(grouped_permissions),
+        'permissions': permissions,
+        'permissions_list': permissions_list or [],
+        'current_perm_ids': current_perm_ids,  # <- THIS IS REQUIRED
+    }
+    return render(request, 'role/role_form.html', context)
+
+
+@login_required(login_url='/login/')
+def role_delete(request, pk):
+    role = get_object_or_404(Role, pk=pk)
+    if request.method == 'POST':
+        role.delete()
+        messages.success(request, "Role deleted successfully!")
+        return redirect('role_list')
+
+
+# =========================================  Permission List  =====================================
+@login_required(login_url='/login/')
+def permission_list(request):
+    permissions = Permission.objects.all().order_by('-id')
+    return render(request, 'permission/permission_list.html', {'permissions':permissions})
+
+
+@login_required(login_url='/login/')
+@role_permission_required('permission_create')
+def permission_create(request):
+    form = PermissionForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('permission_list')
+    return render(request, 'permission/permission_form.html', {'form':form})
+

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <a href="{% url 'role_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Role List</b> </a>
+      / 
+    <span style="color: #39a5b8;"><b>{% if form.instance.pk %}Role Update{% else %} Create Role{% endif %}</b></span>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <h3>{% if form.instance.pk %}Update Role{% else %}Create Role{% endif %}</h3>
+        <a href="{% url 'role_list' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4 text-primary text-center">
+                <b>
+                {% if form.instance.pk %}Update Role{% else %}Add Role{% endif %}
+                </b>
+            </h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Role Name -->
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Role Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="id_name" class="form-control" placeholder="e.g"
+                        value="{{ form.instance.name }}" required>
+                </div>
+
+                <!-- Permissions Section -->
+                <h5 class="mb-3 fw-bold">Permissions</h5>
+
+                <!-- Select All Checkbox -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="checkAll">
+                    <label class="form-check-label fw-bold" for="checkAll">Select All</label>
+                </div>
+
+                <hr>
+
+                <!-- Permission Groups -->
+                {% for group, perms in grouped_permissions.items %}
+                <div class="mb-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input group-check" type="checkbox" id="group-{{ forloop.counter }}">
+                        <label class="form-check-label fw-bold" for="group-{{ forloop.counter }}">{{ group }}</label>
+                    </div>
+
+                    <div class="row ms-3">
+                        {% for perm in perms %}
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input perm-check" type="checkbox" name="permissions" value="{{ perm.id }}" id="perm-{{ perm.id }}"
+                                    {% if perm.id in current_perm_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="perm-{{ perm.id }}">{{ perm.name }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                </div>
+                {% endfor %}
+
+                <!-- Submit Buttons -->
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="submit" class="btn btn-success me-3 px-4 py-2">
+                        {% if form.instance.pk %} Update Role {% else %} Save Role {% endif %}
+                    </button>
+                    <a href="{% url 'role_list' %}" class="btn btn-secondary px-4 py-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Checkbox JS -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkAll = document.getElementById('checkAll');
+    const groupChecks = document.querySelectorAll('.group-check');
+    const permChecks = document.querySelectorAll('.perm-check');
+
+    // Function to update group and select-all states
+    function updateStates() {
+        groupChecks.forEach(group => {
+            const perms = group.closest('div.mb-4').querySelectorAll('.perm-check');
+            group.checked = Array.from(perms).every(p => p.checked);
+        });
+        checkAll.checked = Array.from(groupChecks).every(g => g.checked);
+    }
+
+    // Initial state on page load
+    updateStates();
+
+    // Select/Deselect All
+    checkAll.addEventListener('change', function() {
+        groupChecks.forEach(g => g.checked = this.checked);
+        permChecks.forEach(p => p.checked = this.checked);
+    });
+
+    // Group select/deselect
+    groupChecks.forEach(group => {
+        group.addEventListener('change', function() {
+            const perms = group.closest('div.mb-4').querySelectorAll('.perm-check');
+            perms.forEach(p => p.checked = this.checked);
+            updateStates();
+        });
+    });
+
+    // Individual permission toggle
+    permChecks.forEach(perm => {
+        perm.addEventListener('change', function() {
+            updateStates();
+        });
+    });
+});
+</script>
+{% endblock %}

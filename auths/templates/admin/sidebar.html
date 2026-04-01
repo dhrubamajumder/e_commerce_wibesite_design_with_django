@@ -177,17 +177,17 @@
             </a>
             <ul class="collapse list-unstyled ms-3" id="userSettingsMenu">
                 <li>
-                    <a href="#" class="nav-link">
+                    <a href="{% url 'user_list' %}" class="nav-link">
                         User List
-                    </a>
+                    </a> 
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
+                    <a href="{% url 'role_list' %}" class="nav-link">
                         Role Assign
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
+                    <a href="{% url 'permission_list' %}" class="nav-link">
                         Permissions
                     </a>
                 </li>

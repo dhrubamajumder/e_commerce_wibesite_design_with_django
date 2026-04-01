@@ -1,6 +1,6 @@
 
 from django import forms
-from .models import Category, Product, Customer, SystemSettings, Purchase, PurchaseItem
+from .models import Category, Product, Customer, SystemSettings, Purchase, PurchaseItem, Role, Permission
 
 
 
@@ -60,4 +60,39 @@ class PurchaseItemForm(forms.ModelForm):
             raise forms.ValidationError("Quantity must be at least 1.")
         return quantity
 
+        
+
+class PermissionForm(forms.ModelForm):
+    class Meta:
+        model = Permission
+        fields = ['name', 'group']
+        widgets = {
+            'name': forms.TextInput(attrs={'class':'form_control'}),
+            'group': forms.TextInput(attrs={'class':'form_control'}),
+        }
+        
+class RoleForm(forms.ModelForm):
+    name = forms.CharField(
+        max_length=50,
+        required=True,
+        label="Role Name",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter role name'
+        })
+    )
+
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        label="Permissions",
+        widget=forms.CheckboxSelectMultiple(
+            attrs={'class': 'form-check-input'}
+        )
+    )
+
+    class Meta:
+        model = Role
+        fields = ['name', 'permissions']
+        
         
