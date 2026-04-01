@@ -1,6 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
 
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>{% if product %}Product Update{% else %}Stock List{% endif %}</b></span>
+</div>
+
 <div class="container mt-4">
     <div class="card shadow">
         <div class="card-header bg-primary text-white">

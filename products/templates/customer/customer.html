@@ -19,6 +19,13 @@
 </div>
 {% endif %}
 
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>{% if product %}Product Update{% else %}Customer List{% endif %}</b></span>
+</div>
+
+
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-body">

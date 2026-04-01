@@ -13,6 +13,12 @@
 </div>
 {% endif %}
 
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>{% if profiles %}Profile Update{% else %}Profile{% endif %}</b></span>
+</div>
+
 
 <div class="container my-5">
     <h2 class="mb-4 text-center">My Profile</h2>
@@ -78,6 +84,9 @@
                     </div>
 
                     <div class="text-center">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                            Back to Dashboard
+                        </a>
                         <a href="{% url 'admin_profile_update' %}" class="btn btn-outline-primary">
                             Edit Profile
                         </a>
