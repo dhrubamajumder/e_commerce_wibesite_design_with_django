@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
-{% block title %}{% if payment %}Update Customer Payment{% else %}Add Payment{% endif %}{% endblock %}
+{% block title %}{% if expense %}Update Expense{% else %}Add Expense{% endif %}{% endblock %}
 
 {% block content %}
 <div class="text m-3">
     <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
      / 
-    <a href="{% url 'customer_payment_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Customer Payment List</b> </a>
+    <a href="{% url 'expense_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Expense List</b> </a>
       / 
-    <span style="color: #39a5b8;"><b>{% if payment %}Customer Payment Update{% else %}Customer Payment Create{% endif %}</b></span>
+    <span style="color: #39a5b8;"><b>{% if expense %}Expense Update{% else %}Expense Create{% endif %}</b></span>
 
 <div class="d-flex justify-content-between align-items-center mt-2">
-    <h3>{% if payment %}Update Customer Payment{% else %}Create Customer Payment{% endif %}</h3>
-    <a href="{% url 'customer_payment_list' %}" class="btn btn-outline-secondary">Back</a>
+    <h3>{% if expense %}Update Expense{% else %}Create Expense{% endif %}</h3>
+    <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary">Back</a>
 </div>
 </div>
 
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-body">
-            <h4>Customer Payment Details</h4>
-            <p>Enter customer payment information below</p>
+            <h4>Expense Details</h4>
+            <p>Enter expense information below</p>
             <hr>
 
             <!-- ALERT MESSAGE -->
@@ -35,18 +35,13 @@
             <form method="post">
                 {% csrf_token %}
 
-                <!-- Customer Category -->
+                <!-- Expense Category -->
                 <div class="mb-3">
-                    <label for="id_customer" class="form-label">
-                        Customer <span class="text-danger">*</span>
-                    </label>
-                    <select name="customer" id="id_customer" class="form-select" required>
-                        <option value="" disabled>Select Customer</option>
-                        {% for cust in customers %}
-                            <option value="{{ cust.id }}"
-                                {% if payment and payment.customer.id == cust.id %}selected{% endif %}>
-                                {{ cust.name }}
-                            </option>
+                    <label for="id_category" class="form-label">Expense Category <span class="text-danger">*</span></label>
+                    <select name="category" id="id_category" class="form-select" required>
+                        <option value="" disabled>Select category</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if expense and expense.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -66,19 +61,26 @@
                 <div class="mb-3">
                     <label for="id_amount" class="form-label">Amount <span class="text-danger">*</span></label>
                     <input type="number" name="amount" id="id_amount" class="form-control" step="0.01" min="0" placeholder="e.g. 1500.00"
-                        value="{% if payment %}{{ payment.amount }}{% endif %}" required>
+                        value="{% if expense %}{{ expense.amount }}{% endif %}" required>
+                </div>
+
+                <!-- Date -->
+                <div class="mb-3">
+                    <label for="id_date" class="form-label">Date <span class="text-danger">*</span></label>
+                    <input type="date" name="date" id="id_date" class="form-control"
+                        value="{% if expense %}{{ expense.date }}{% endif %}" required>
                 </div>
 
                 <!-- Note -->
                 <div class="mb-3">
                     <label for="id_note" class="form-label">Note</label>
-                    <textarea name="note" id="id_note" class="form-control" placeholder="Enter note (optional)">{% if payment %}{{ payment.note }}{% endif %}</textarea>
+                    <textarea name="note" id="id_note" class="form-control" placeholder="Enter note (optional)">{% if expense %}{{ expense.note }}{% endif %}</textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    {% if payment %} Update Customer Payment{% else %} Save Customer Payment{% endif %}
+                    {% if expense %} Update Expense{% else %} Save Expense{% endif %}
                 </button>
-                <a href="{% url 'customer_payment_list' %}" class="btn btn-secondary">Cancel</a>
+                <a href="{% url 'expense_list' %}" class="btn btn-secondary">Cancel</a>
             </form>
         </div>
     </div>

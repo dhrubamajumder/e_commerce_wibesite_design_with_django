@@ -12,8 +12,11 @@
     }
 </style>
 
+
 <div class="sidebar" id="sidebar">
-    <ul class="nav flex-column">
+
+    <!-- Fixed Top Section -->
+    <div class="sidebar-top">
         <div class="brand">
             <a href="#">
                 <i class="bi bi-cart4"></i>
@@ -24,214 +27,284 @@
         <div class="search-box">
             <input type="text" placeholder="Search...">
         </div>
+    </div>
 
-        <a href="{% url 'admin_dashboard' %}">
-            <i class="bi bi-speedometer2"></i>
-            <span class="menu-text">Dashboard</span>
-        </a>
+    <!-- Scrollable Menu Section -->
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
 
+            <!-- ALL YOUR MENU ITEMS HERE -->
+            <!-- Dashboard -->
+            <li>
+                <a href="{% url 'admin_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
 
+            <!-- Orders -->
+            <li>
+                <a href="{% url 'admin_order_list' %}">
+                    <i class="bi bi-cart"></i>
+                    <span class="menu-text">Orders</span>
+                </a>
+            </li>
 
-        <a href="{% url 'admin_order_list' %}">
-            <i class="bi bi-cart"></i>
-            <span class="menu-text">Orders</span>
-        </a>
-        
-        {% with request.resolver_match.url_name as url_name %}
-        <li class="nav-item">
-            <a class="nav-link d-flex justify-content-between align-items-center
-                {% if url_name in 'purchase_create purchase_list purchase_return' %} active bg-primary {% endif %}" 
-                data-bs-toggle="collapse" 
-                href="#purchaseMenu" 
-                aria-expanded="{% if url_name in 'purchase_create purchase_list purchase_return' %}true{% else %}false{% endif %}">
-                
-                <!-- Left Side (Icon + Text) -->
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-bar-chart me-2"></i>
-                    <span class="menu-text">Purchase</span>
-                </div>
+            <!-- REST OF YOUR MENU SAME AS BEFORE -->
 
-                <!-- Right Side Chevron -->
-                <i class="bi bi-chevron-down rotate-icon"></i>
-            </a>
-
-            <div class="collapse {% if url_name in 'purchase_create purchase_list purchase_return' %}show{% endif %}" id="purchaseMenu">
-                <ul class="nav flex-column bg-dark ms-3">
-                    <li>
-                        <a class="nav-link {% if url_name == 'purchase_list' %}active text-info{% endif %}" 
-                        href="{% url 'purchase_list' %}">
-                            Purchase List
-                        </a>
-                    </li> 
-                    <li>
-                        <a class="nav-link {% if url_name == 'purchase_return' %}active text-info{% endif %}" 
-                        href="#">
-                            Purchase Return
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        {% endwith %}
-
-    {% comment %} -----------------   Reports Menu   ----------------- {% endcomment %}
-        {% with request.resolver_match.url_name as url_name %}
-        <li class="nav-item">
-            <a class="nav-link d-flex justify-content-between align-items-center
-            {% if url_name == 'sales_report' or url_name == 'stock_list' %} active bg-primary {% endif %}"
-            data-bs-toggle="collapse"
-            href="#reportMenu"
-            role="button"
-            aria-expanded="{% if url_name == 'sales_report' or url_name == 'stock_list' %}true{% else %}false{% endif %}">
-           
-             <!-- Left Side (Icon + Text) -->
-            <div class="d-flex align-items-center">
-                <i class="bi bi-box me-2"></i>
-                <span class="menu-text">Reports</span>
-            </div>
-
-            <!-- Right Side Chevron -->
-            <i class="bi bi-chevron-down rotate-icon"></i>
-            </a>    
-
-            <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_list' %}show{% endif %}" id="reportMenu">
-                <ul class="nav flex-column ms-3">
-                    <li>
-                        <a class="nav-link {% if url_name == 'sales_report' %}active text-info{% endif %}" href="#">
-                            Sales Report
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {% if url_name == 'stock_list' %}active text-info{% endif %}" href="{% url 'stock_list' %}">
-                            Stock Report
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        {% endwith %}
-
-        
-
-    {% comment %} ------------------------   Product Settings Menu   ------------------------ {% endcomment %}
-        {% with request.resolver_match.url_name as url_name %}
-        <li class="nav-item">
-            <a class="nav-link d-flex justify-content-between align-items-center
-                {% if url_name in 'product_create product_list category_create category_list' %} active bg-primary {% endif %}" 
-                data-bs-toggle="collapse" 
-                href="#productMenu" 
-                aria-expanded="{% if url_name in 'product_create product_list category_create category_list' %}true{% else %}false{% endif %}">
-
-                <!-- Left Side (Icon + Text) -->
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-box"></i>
-                    <span class="menu-text">Product Settings</span>
-                </div>
-
-                <!-- Right Side Chevron -->
-                <i class="bi bi-chevron-down rotate-icon"></i>
-            </a>
-
-            <div class="collapse {% if url_name in 'product_create product_list category_create category_list' %}show{% endif %}" id="productMenu">
-                <ul class="nav flex-column bg-dark ms-3">
-                    <li><a class="nav-link {% if url_name == 'product' %}active text-info{% endif %}" href="{% url 'product' %}">Product List</a></li>
-                    <li><a class="nav-link {% if url_name == 'category_list' %}active text-info{% endif %}" href="{% url 'category_list' %}">Category List</a></li>
-                </ul>
-            </div>
-        </li>
-        {% endwith %}
-
-        
-
-
-        {% with request.resolver_match.url_name as url_name %}
-        <li class="nav-item">
-            <a class="nav-link d-flex justify-content-between align-items-center
-                {% if url_name in 'supplier customer settings_list' %} active bg-primary {% endif %}"
-                data-bs-toggle="collapse"
-                href="#basicSettingsMenu"
-                aria-expanded="{% if url_name in 'supplier customer settings_list' %}true{% else %}false{% endif %}">
-                
-                <!-- Left Side (Icon + Text) -->
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-gear"></i>
-                    <span class="menu-text">Basic Settings</span>
-                </div>
-
-                <!-- Right Side Chevron -->
-                <i class="bi bi-chevron-down rotate-icon"></i>
-            </a>
-
-            <div class="collapse {% if url_name in 'supplier customer settings_list' %}show{% endif %}" id="basicSettingsMenu">
-                <ul class="nav flex-column bg-dark ms-3">
-                    <li>
-                        <a class="nav-link {% if url_name == 'supplier' %}active text-info{% endif %}"
-                        href="{% url 'supplier' %}">
-                            Supplier List
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {% if url_name == 'customer' %}active text-info{% endif %}"
-                        href="{% url 'customer' %}">
-                            Customer List
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {% if url_name == 'settings_list' %}active text-info{% endif %}"
-                        href="{% url 'settings_list' %}">
-                            Settings
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        {% endwith %}
-
-        {% with request.resolver_match.url_name as url_name %}
-        <li class="nav-item">
-            <a class="nav-link d-flex justify-content-between align-items-center
-                {% if url_name in 'user_list role_list permission_list' %} active bg-primary {% endif %}"
-                data-bs-toggle="collapse"
-                href="#userSettingsMenu"
-                aria-expanded="{% if url_name in 'user_list role_list permission_list' %}true{% else %}false{% endif %}">
-                
-                <!-- Left Side (Icon + Text) -->
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-bar-chart"></i>
-                    <span class="menu-text">User Settings</span>
-                </div>
-
-                <!-- Right Side Chevron -->
-                <i class="bi bi-chevron-down rotate-icon"></i>
-            </a>
-
-            <div class="collapse {% if url_name in 'user_list role_list permission_list' %}show{% endif %}" id="userSettingsMenu">
-                <ul class="nav flex-column bg-dark ms-3">
-                    <li>
-                        <a class="nav-link {% if url_name == 'user_list' %}active text-info{% endif %}"
-                        href="{% url 'user_list' %}">
-                            User List
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {% if url_name == 'role_list' %}active text-info{% endif %}"
-                        href="{% url 'role_list' %}">
-                            Role Assign
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {% if url_name == 'permission_list' %}active text-info{% endif %}"
-                        href="{% url 'permission_list' %}">
-                            Permissions
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        {% endwith %}
-    </ul>  
     
+
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                    {% if url_name in 'purchase_create purchase_list purchase_return' %} active bg-primary {% endif %}" 
+                    data-bs-toggle="collapse" 
+                    href="#purchaseMenu" 
+                    aria-expanded="{% if url_name in 'purchase_create purchase_list purchase_return' %}true{% else %}false{% endif %}">
+                    
+                    <!-- Left Side (Icon + Text) -->
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        <span class="menu-text">Purchase</span>
+                    </div>
+
+                    <!-- Right Side Chevron -->
+                    <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>
+
+                <div class="collapse {% if url_name in 'purchase_create purchase_list purchase_return' %}show{% endif %}" id="purchaseMenu">
+                    <ul class="nav flex-column bg-dark ms-3">
+                        <li>
+                            <a class="nav-link {% if url_name == 'purchase_list' %}active text-info{% endif %}" 
+                            href="{% url 'purchase_list' %}">
+                                Purchase List
+                            </a>
+                        </li> 
+                        <li>
+                            <a class="nav-link {% if url_name == 'purchase_return' %}active text-info{% endif %}" 
+                            href="#">
+                                Purchase Return
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+        {% comment %} -----------------   Reports Menu   ----------------- {% endcomment %}
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                {% if url_name == 'sales_report' or url_name == 'stock_list' %} active bg-primary {% endif %}"
+                data-bs-toggle="collapse"
+                href="#reportMenu"
+                role="button"
+                aria-expanded="{% if url_name == 'sales_report' or url_name == 'stock_list' %}true{% else %}false{% endif %}">
+            
+                <!-- Left Side (Icon + Text) -->
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-box me-2"></i>
+                    <span class="menu-text">Reports</span>
+                </div>
+
+                <!-- Right Side Chevron -->
+                <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>    
+
+                <div class="collapse {% if url_name == 'sales_report' or url_name == 'stock_list' %}show{% endif %}" id="reportMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li>
+                            <a class="nav-link {% if url_name == 'sales_report' %}active text-info{% endif %}" href="#">
+                                Sales Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if url_name == 'stock_list' %}active text-info{% endif %}" href="{% url 'stock_list' %}">
+                                Stock Report
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+            
+
+        {% comment %} ------------------------   Product Settings Menu   ------------------------ {% endcomment %}
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                    {% if url_name in 'product category_list' %} active bg-primary {% endif %}" 
+                    data-bs-toggle="collapse" 
+                    href="#productMenu" 
+                    aria-expanded="{% if url_name in 'productcategory_list' %}true{% else %}false{% endif %}">
+
+                    <!-- Left Side (Icon + Text) -->
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-box"></i>
+                        <span class="menu-text">Product Settings</span>
+                    </div>
+
+                    <!-- Right Side Chevron -->
+                    <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>
+
+                <div class="collapse {% if url_name in 'product category_list' %}show{% endif %}" id="productMenu">
+                    <ul class="nav flex-column bg-dark ms-3">
+                        <li><a class="nav-link {% if url_name == 'product' %}active text-info{% endif %}" href="{% url 'product' %}">Product List</a></li>
+                        <li><a class="nav-link {% if url_name == 'category_list' %}active text-info{% endif %}" href="{% url 'category_list' %}">Category List</a></li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                    {% if url_name in 'customer_payment_list category_list' %} active bg-primary {% endif %}" 
+                    data-bs-toggle="collapse" 
+                    href="#financeMenu" 
+                    aria-expanded="{% if url_name in 'customer_payment_list category_list' %}true{% else %}false{% endif %}">
+
+                    <!-- Left Side (Icon + Text) -->
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-box"></i>
+                        <span class="menu-text">Finance</span>
+                    </div>
+
+                    <!-- Right Side Chevron -->
+                    <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>
+
+                <div class="collapse {% if url_name in 'customer_payment_list category_list' %}show{% endif %}" id="financeMenu">
+                    <ul class="nav flex-column bg-dark ms-3">
+                        <li><a class="nav-link {% if url_name == 'customer_payment_list' %}active text-info{% endif %}" href="{% url 'customer_payment_list' %}">Customer Payments</a></li>
+                        <li><a class="nav-link {% if url_name == 'category_list' %}active text-info{% endif %}" href="{% url 'category_list' %}">Category List</a></li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+            
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                    {% if url_name in 'supplier customer fund_list branch_list expense_category_list income_category_list settings_list' %} active bg-primary {% endif %}"
+                    data-bs-toggle="collapse"
+                    href="#basicSettingsMenu"
+                    aria-expanded="{% if url_name in 'supplier customer fund_list branch_list expense_category_list income_category_list settings_list' %}true{% else %}false{% endif %}">
+                    
+                    <!-- Left Side (Icon + Text) -->
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-gear"></i>
+                        <span class="menu-text">Basic Settings</span>
+                    </div>
+
+                    <!-- Right Side Chevron -->
+                    <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>
+
+                <div class="collapse {% if url_name in 'supplier customer fund_list branch_list expense_category_list income_category_list settings_list' %}show{% endif %}" id="basicSettingsMenu">
+                    <ul class="nav flex-column bg-dark ms-3">
+                        <li>
+                            <a class="nav-link {% if url_name == 'supplier' %}active text-info{% endif %}"
+                            href="{% url 'supplier' %}">
+                                Supplier List
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if url_name == 'customer' %}active text-info{% endif %}"
+                            href="{% url 'customer' %}">
+                                Customer List
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link {% if url_name == 'fund_list' %}active text-info{% endif %}"
+                            href="{% url 'fund_list' %}">
+                                Fund List
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link {% if url_name == 'branch_list' %}active text-info{% endif %}"
+                            href="{% url 'branch_list' %}">
+                                Branch List
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link {% if url_name == 'expense_category_list' %}active text-info{% endif %}"
+                            href="{% url 'expense_category_list' %}">
+                                Expense Category
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link {% if url_name == 'income_category_list' %}active text-info{% endif %}"
+                            href="{% url 'income_category_list' %}">
+                                Other Income Category
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link {% if url_name == 'settings_list' %}active text-info{% endif %}"
+                            href="{% url 'settings_list' %}">
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+            {% with request.resolver_match.url_name as url_name %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center
+                    {% if url_name in 'user_list role_list permission_list' %} active bg-primary {% endif %}"
+                    data-bs-toggle="collapse"
+                    href="#userSettingsMenu"
+                    aria-expanded="{% if url_name in 'user_list role_list permission_list' %}true{% else %}false{% endif %}">
+                    
+                    <!-- Left Side (Icon + Text) -->
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-bar-chart"></i>
+                        <span class="menu-text">User Settings</span>
+                    </div>
+
+                    <!-- Right Side Chevron -->
+                    <i class="bi bi-chevron-down rotate-icon"></i>
+                </a>
+
+                <div class="collapse {% if url_name in 'user_list role_list permission_list' %}show{% endif %}" id="userSettingsMenu">
+                    <ul class="nav flex-column bg-dark ms-3">
+                        <li>
+                            <a class="nav-link {% if url_name == 'user_list' %}active text-info{% endif %}"
+                            href="{% url 'user_list' %}">
+                                User List
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if url_name == 'role_list' %}active text-info{% endif %}"
+                            href="{% url 'role_list' %}">
+                                Role Assign
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if url_name == 'permission_list' %}active text-info{% endif %}"
+                            href="{% url 'permission_list' %}">
+                                Permissions
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+
+
+        </ul>
+    </div>
+
 </div>
-
-
 

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{% if fund %}Update Fund{% else %}Add Fund{% endif %}{% endblock %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <a href="{% url 'fund_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Fund List</b> </a>
+      / 
+    <span style="color: #39a5b8;"><b>{% if fund %}Fund Update{% else %}Fund Create{% endif %}</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>{% if fund %}Update Fund{% else %}Create Fund{% endif %}</h3>
+    <a href="{% url 'fund_list' %}" class="btn btn-outline-secondary">Back</a>
+</div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Basic Information</h4>
+            <p>Enter fund details below</p><hr>
+
+            <!-- ALERT MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Fund Name -->
+                <div class="mb-3">
+                    <label for="id_fund_name" class="form-label">Fund Name <span class="text-danger">*</span></label>
+                    <input type="text" name="fund_name" id="id_fund_name" class="form-control" placeholder="e.g. Community Fund" 
+                        value="{% if fund %}{{ fund.fund_name }}{% endif %}" required>
+                </div>
+
+                <!-- Type -->
+                <div class="mb-3">
+                    <label for="id_fund_type" class="form-label">Type <span class="text-danger">*</span></label>
+                    <select name="fund_type" id="id_fund_type" class="form-select" required>
+                        <option value="" disabled>Select type</option>
+                        <option value="Bank" {% if fund and fund.fund_type == "Bank" %}selected{% endif %}>Bank</option>
+                        <option value="Other" {% if fund and fund.fund_type == "Other" %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="id_amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" id="id_amount" class="form-control" step="0.01" min="0" placeholder="e.g. 1500.00"
+                        value="{% if fund %}{{ fund.amount }}{% endif %}" required>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Description</label>
+                    <textarea name="description" id="id_description" class="form-control" placeholder="Enter description (optional)">{% if fund %}{{ fund.description }}{% endif %}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if fund %} Update Fund{% else %} Save Fund{% endif %}
+                </button>
+                <a href="{% url 'fund_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

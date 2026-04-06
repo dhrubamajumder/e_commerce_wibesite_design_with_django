@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 {% block title %}{% if payment %}Update Customer Payment{% else %}Add Payment{% endif %}{% endblock %}
 
 {% block content %}
 <div class="text m-3">
-    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+    <a href="{% url 'dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
      / 
     <a href="{% url 'customer_payment_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Customer Payment List</b> </a>
       / 

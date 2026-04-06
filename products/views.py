@@ -627,7 +627,6 @@ def toggle_wishlist(request, product_id):
 
 
 def wishlist_view(request):
-
     if request.user.is_authenticated:
         wishlist_items = Wishlist.objects.filter(user=request.user)
     else:
@@ -637,7 +636,6 @@ def wishlist_view(request):
         wishlist_items = Wishlist.objects.filter(
             session_key=request.session.session_key
         )
-
     return render(
         request,
         "wish/wishlist.html",

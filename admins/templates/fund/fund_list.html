@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Fund List{% endblock %}
+
+{% block content %}
+<!-- ALERT MESSAGE -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     / 
+    <span style="color: #39a5b8;"><b>Fund List</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>Fund List</h3>
+    {% if request.user.is_superuser or 'fund_create' in permissions_list %}
+    <a href="{% url 'fund_create' %}" class="btn btn-primary">➕ Add Fund</a>
+    {% endif %}
+</div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            
+            <form method="get" class="d-inline-block mb-3">
+                <label>Data per page: </label>
+                <select name="per_page" onchange="this.form.submit()">
+                    <option value="5" {% if per_page|add:'0' == 5 %}selected{% endif %}>5</option>
+                    <option value="10" {% if per_page|add:'0' == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page|add:'0' == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page|add:'0' == 50 %}selected{% endif %}>50</option>
+                </select>
+            </form>
+
+            <table class="table table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Fund Name</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        {% if permissions_list and 'fund_update' in permissions_list or permissions_list and 'fund_delete' in permissions_list %}
+                        <th class="text-end">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fund in page_obj %}
+                    <tr>
+                        <td class="p-2">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td>{{ fund.fund_name }}</td>
+                        <td>{{ fund.fund_type }}</td>
+                        <td>{{ fund.amount }}</td>
+                        <td>{{ fund.description|default:"-" }}</td>
+                        {% if permissions_list and 'fund_update' in permissions_list or permissions_list and 'fund_delete' in permissions_list %}
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
+                                    &#8942;   <!-- 3 dots -->
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {% if permissions_list and 'fund_update' in permissions_list %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'fund_update' fund.id %}">
+                                            ✏️ Edit
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% if permissions_list and 'fund_delete' in permissions_list %}
+                                    <li>
+                                        <form method="post" action="{% url 'fund_delete' fund.id %}" onsubmit="return confirm('Are you sure you want to delete this Fund?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger">🗑️ Delete </button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No funds found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+             <!-- Pagination Controls -->
+            <nav>
+                <ul class="pagination justify-content-end mt-3">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

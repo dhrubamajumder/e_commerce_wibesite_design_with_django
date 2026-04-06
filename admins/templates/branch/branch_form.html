@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'branch_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Branch List</b></a> / 
+    <span style="color: #39a5b8;"><b>{% if form.instance.pk %}Edit Branch{% else %}Add Branch{% endif %}</b></span>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4 text-primary">{% if form.instance.pk %}Edit Branch{% else %}Add Branch{% endif %}</h2>
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" id="id_name" value="{{ form.name.value|default_if_none:'' }}">
+                    {% for error in form.name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_email" class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" id="id_email" value="{{ form.email.value|default_if_none:'' }}">
+                    {% for error in form.email.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                    <input type="text" name="phone" class="form-control" id="id_phone" value="{{ form.phone.value|default_if_none:'' }}">
+                    {% for error in form.phone.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_address" class="form-label">Address <span class="text-danger">*</span></label>
+                    <textarea name="address" class="form-control" id="id_address" rows="3">{{ form.address.value|default_if_none:'' }}</textarea>
+                    {% for error in form.address.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    {% if form.instance.pk %}Update{% else %}Create{% endif %}
+                </button>
+                <a href="{% url 'branch_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

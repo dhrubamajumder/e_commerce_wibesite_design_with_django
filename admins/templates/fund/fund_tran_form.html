@@ -1,0 +1,138 @@
+{% extends 'index.html' %}
+
+{% block title %}
+    {% if transfer %}Update Fund Transfer{% else %}Add Fund Transfer{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- ALERT MESSAGE -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="text m-3">
+    <a href="{% url 'dashboard' %}" style="text-decoration:none; color:#6e6e6e;">
+        <b>Dashboard</b>
+    </a>
+     /
+    <a href="{% url 'fund_transfer_list' %}" style="text-decoration:none; color:#6e6e6e;">
+        <b>Fund Transfer List</b>
+    </a>
+     /
+    <span style="color:#39a5b8;">
+        <b>
+            {% if transfer %}Fund Transfer Update{% else %}Fund Transfer Create{% endif %}
+        </b>
+    </span>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <h3>
+            {% if transfer %}Update Fund Transfer{% else %}Create Fund Transfer{% endif %}
+        </h3>
+        <a href="{% url 'fund_transfer_list' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Fund Transfer Details</h4>
+            <p>Enter fund transfer information below</p>
+            <hr>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- From Fund -->
+                <div class="mb-3">
+                    <label for="id_from_fund" class="form-label">
+                        From Fund <span class="text-danger">*</span>
+                    </label>
+                    <select name="from_fund" id="id_from_fund" class="form-select" required>
+                        <option value="" disabled {% if not transfer %}selected{% endif %}>
+                            Select From Fund
+                        </option>
+                        {% for f in funds %}
+                            <option value="{{ f.id }}"
+                                {% if transfer and transfer.from_fund.id == f.id %}selected{% endif %}>
+                                {{ f.fund_name }} (Available: {{ f.amount }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- To Fund -->
+                <div class="mb-3">
+                    <label for="id_to_fund" class="form-label">
+                        To Fund <span class="text-danger">*</span>
+                    </label>
+                    <select name="to_fund" id="id_to_fund" class="form-select" required>
+                        <option value="" disabled {% if not transfer %}selected{% endif %}>
+                            Select To Fund
+                        </option>
+                        {% for f in fund %}
+                            <option value="{{ f.id }}"
+                                {% if transfer and transfer.to_fund.id == f.id %}selected{% endif %}>
+                                {{ f.fund_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="id_amount" class="form-label">
+                        Amount <span class="text-danger">*</span>
+                    </label>
+                    <input type="number"
+                           name="amount"
+                           id="id_amount"
+                           class="form-control"
+                           step="0.01"
+                           min="0"
+                           placeholder="e.g. 1500.00"
+                           value="{% if transfer %}{{ transfer.amount }}{% endif %}"
+                           required>
+                </div>
+
+                <!-- Date -->
+                <div class="mb-3">
+                    <label for="id_date" class="form-label">
+                        Date <span class="text-danger">*</span>
+                    </label>
+                    <input type="date"
+                           name="date"
+                           id="id_date"
+                           class="form-control"
+                           value="{% if transfer %}{{ transfer.date|date:'Y-m-d' }}{% endif %}"
+                           required>
+                </div>
+
+                <!-- Note -->
+                <div class="mb-3">
+                    <label for="id_note" class="form-label">Note</label>
+                    <textarea name="note"
+                              id="id_note"
+                              class="form-control"
+                              placeholder="Enter note (optional)">{% if transfer %}{{ transfer.note }}{% endif %}</textarea>
+                </div>
+
+                <!-- Buttons -->
+                <button type="submit" class="btn btn-primary">
+                    {% if transfer %}Update Fund Transfer{% else %}Save Fund Transfer{% endif %}
+                </button>
+                <a href="{% url 'fund_transfer_list' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
