@@ -1,6 +1,6 @@
 
 from django import forms
-from .models import Branch, Fund, Expense, ExpenseCategory, OtherIncome, IncomeCategory, SupplierPayment, CustomerPayment, FundTransfer
+from .models import Branch, Fund, Expense, ExpenseCategory, OtherIncome, IncomeCategory, SupplierPayment, CustomerPayment, FundTransfer, Slider
 
 
 
@@ -73,3 +73,8 @@ class FundTransferForm(forms.ModelForm):
         model = FundTransfer
         fields = ['from_fund', 'to_fund', 'amount', 'date', 'note']        
 
+
+class SliderForm(forms.ModelForm):
+    class Meta:
+        model = Slider
+        fields = "__all__"

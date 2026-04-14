@@ -22,7 +22,73 @@
 .heart-icon.active {
     fill: red;          /* active = red */
 }
+
+    .carousel-item {
+    height: 500px;
+    position: relative;
+  }
+
+  .slider-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* image crop হবে, stretch হবে না */
+  }
+
+  /* overlay effect (like your image) */
+  .carousel-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  /* caption nicer */
+  .carousel-caption {
+    bottom: 20%;
+    z-index: 2;
+  }
+
 </style>
+
+<!-- ====== Slider Start ====== -->
+<div id="carouselExampleCaptions" class="carousel slide py-4" data-bs-ride="carousel">
+
+  <!-- Indicators -->
+  <div class="carousel-indicators">
+    {% for slider in sliders %}
+    <button type="button"
+            data-bs-target="#carouselExampleCaptions"
+            data-bs-slide-to="{{ forloop.counter0 }}"
+            class="{% if forloop.first %}active{% endif %}">
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Slides -->
+  <div class="carousel-inner">
+    {% for slider in sliders %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      <img src="{{ slider.image.url }}" class="d-block w-100 slider-img" alt="">
+      <div class="carousel-caption">
+        <h5>{{ slider.title }}</h5>
+        <p>{{ slider.description }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Controls -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+
+</div>
+<!-- ====== Slider End ====== -->
+
 
 <section id="category">
     <div class="container-fluid">
@@ -123,8 +189,44 @@
 
 </section>
 
-<!-- <script src="{% static 'js/cart.js' %}"></script> -->
+<div class="row d-flex justify-content-center" style="background-color: rgb(245, 245, 226);">
+    <h2 class="mb-4 mt-4 text-center fw-bold">Client Reviews</h2>
+    {% for r in reviews %}
+    <div class="col-md-3 mb-4 p-4">
+        <div class="card product-card h-100 shadow-sm text-center p-3">
+            <div style="color:rgb(239, 203, 2); font-weight: bold;">
+               
+                {% for i in "12345" %}
+                    {% if forloop.counter <= r.rating|add:"0" %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+            </div>
 
+            {% if r.photo %}
+                <img src="{{ r.photo.url }}" class="rounded-circle mx-auto" width="80" height="80">
+            {% else %}
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center mx-auto"
+                     style="width:80px;height:80px;font-size:30px;font-weight:bold;">
+                    {{ r.name|first|upper }}
+                </div>
+            {% endif %}
+
+            <h5 class="mt-2">{{ r.name }}</h5>
+            <small class="text-muted">{{ r.designation }}</small>
+
+            <p class="mt-2">{{ r.review }}</p>
+
+            
+
+        </div>
+    </div>
+    {% empty %}
+        <p class="text-center">No client reviews found.</p>
+    {% endfor %}
+</div>
 
 
 

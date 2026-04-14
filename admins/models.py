@@ -103,3 +103,29 @@ class FundTransfer(models.Model):
 
     def __str__(self):
         return f"{self.from_fund} → {self.to_fund} ({self.amount})"
+
+
+class Slider(models.Model):
+    title = models.CharField(max_length=150)
+    image = models.ImageField(upload_to='slider_images/')
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+    
+
+
+class ClientReview(models.Model):
+    name = models.CharField(max_length=200)
+    designation = models.CharField(max_length=200, blank=True, null=True)
+    review = models.TextField()
+    photo = models.ImageField(upload_to='client_reviews/', blank=True, null=True)
+    rating = models.IntegerField(default=5)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+    
+    
+    

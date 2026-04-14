@@ -1,93 +1,95 @@
-{% load static %}
+  {% load static %}
+  <style>
+    .carousel-item {
+    height: 500px;
+    position: relative;
+  }
 
-    <section class="py-3">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12">
+  .slider-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* image crop হবে, stretch হবে না */
+  }
 
-            <div class="banner-blocks">
-            
-              <div class="banner-ad large bg-info block-1">
+  /* overlay effect (like your image) */
+  .carousel-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+  }
 
-                <div class="swiper main-swiper">
-                  <div class="swiper-wrapper">
-                    
-                    <div class="swiper-slide">
-                      <div class="row banner-content p-5">
-                        <div class="content-wrapper col-md-7">
-                          <div class="categories my-3">100% natural</div>
-                          <h3 class="display-4">Fresh Smoothie & Summer Juice</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim massa diam elementum.</p>
-                          <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1 px-4 py-3 mt-3">Shop Now</a>
-                        </div>
-                        <div class="img-wrapper col-md-5">
-                          <img src="{% static 'images/product-thumb-1.png' %}" class="img-fluid">
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="swiper-slide">
-                      <div class="row banner-content p-5">
-                        <div class="content-wrapper col-md-7">
-                          <div class="categories mb-3 pb-3">100% natural</div>
-                          <h3 class="banner-title">Fresh Smoothie & Summer Juice</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim massa diam elementum.</p>
-                          <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Shop Collection</a>
-                        </div>
-                        <div class="img-wrapper col-md-5">
-                          <img src="{% static 'images/product-thumb-1.png' %}" class="img-fluid">
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="swiper-slide">
-                      <div class="row banner-content p-5">
-                        <div class="content-wrapper col-md-7">
-                          <div class="categories mb-3 pb-3">100% natural</div>
-                          <h3 class="banner-title">Heinz Tomato Ketchup</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim massa diam elementum.</p>
-                          <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Shop Collection</a>
-                        </div>
-                        <div class="img-wrapper col-md-5">
-                          <img src="{% static 'images/product-thumb-2.png' %}" class="img-fluid">
-                        </div>
-                      </div>
+  /* caption nicer */
+  .carousel-caption {
+    bottom: 20%;
+    z-index: 2;
+  }
+  </style>
+
+      <section>
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-12">
+
+              <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+
+                <!-- Indicators -->
+                <div class="carousel-indicators">
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="3"></button>
+                </div>
+
+                <!-- Slides -->
+                <div class="carousel-inner">
+
+                  <div class="carousel-item active">
+                    <img src="{% static 'images/banner-image-2.jpg' %}" class="d-block w-100 slider-img" alt="">
+                    <div class="carousel-caption">
+                      <h5>Fresh Fruits</h5>
+                      <p>Healthy and organic fruits</p>
                     </div>
                   </div>
-                  
-                  <div class="swiper-pagination"></div>
 
-                </div>
-              </div>
-              
-              <div class="banner-ad bg-success-subtle block-2" style="background:url('images/ad-image-1.png') no-repeat;background-position: right bottom">
-                <div class="row banner-content p-5">
-
-                  <div class="content-wrapper col-md-7">
-                    <div class="categories sale mb-3 pb-3">20% off</div>
-                    <h3 class="banner-title">Fruits & Vegetables</h3>
-                    <a href="#" class="d-flex align-items-center nav-link">Shop Collection <svg width="24" height="24"><use xlink:href="#arrow-right"></use></svg></a>
+                  <div class="carousel-item">
+                    <img src="{% static 'images/banner-image-1.jpg' %}" class="d-block w-100 slider-img" alt="">
+                    <div class="carousel-caption">
+                      <h5>Best Deals</h5>
+                      <p>Get amazing discounts today</p>
+                    </div>
                   </div>
 
-                </div>
-              </div>
+                  <div class="carousel-item">
+                    <img src="{% static 'images/banner-image-2.jpg' %}" class="d-block w-100 slider-img" alt="">
+                    <div class="carousel-caption">
+                      <h5>Quality Products</h5>
+                      <p>We provide the best quality</p>
+                    </div>
+                  </div>
 
-              <div class="banner-ad bg-danger block-3" style="background:url('images/ad-image-2.png') no-repeat;background-position: right bottom">
-                <div class="row banner-content p-5">
-
-                  <div class="content-wrapper col-md-7">
-                    <div class="categories sale mb-3 pb-3">15% off</div>
-                    <h3 class="item-title">Baked Products</h3>
-                    <a href="#" class="d-flex align-items-center nav-link">Shop Collection <svg width="24" height="24"><use xlink:href="#arrow-right"></use></svg></a>
+                  <div class="carousel-item">
+                    <img src="{% static 'images/fruits.png' %}" class="d-block w-100 slider-img" alt="">
+                    <div class="carousel-caption">
+                      <h5>Quality Products</h5>
+                      <p>We provide the best quality</p>
+                    </div>
                   </div>
 
                 </div>
+
+                <!-- Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+                  <span class="carousel-control-next-icon"></span>
+                </button>
+
               </div>
 
             </div>
-            <!-- / Banner Blocks -->
-              
           </div>
         </div>
-      </div>
-    </section>
+      </section>

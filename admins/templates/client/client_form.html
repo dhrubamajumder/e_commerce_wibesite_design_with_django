@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{% if review %}Update Client Review{% else %}Create Client Review{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     /
+    <a href="{% url 'client_review_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Client Review List</b></a>
+     /
+    <span style="color: #39a5b8;"><b>{% if review %}Update Client Review{% else %}Create Client Review{% endif %}</b></span>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <h3>{% if review %}Update Client Review{% else %}Create Client Review{% endif %}</h3>
+        <a href="{% url 'client_review_list' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <h4>Client Review Details</h4>
+            <p>Fill up client review information</p>
+            <hr>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label class="form-label">Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" placeholder="Enter client name"
+                        value="{% if review %}{{ review.name }}{% endif %}" required>
+                </div>
+
+                <!-- Designation -->
+                <div class="mb-3">
+                    <label class="form-label">Designation</label>
+                    <input type="text" name="designation" class="form-control" placeholder="Enter designation"
+                        value="{% if review %}{{ review.designation }}{% endif %}">
+                </div>
+
+                <!-- Review (Rich Text) -->
+                <div class="mb-3">
+                    <label class="form-label">Review <span class="text-danger">*</span></label>
+                    <textarea name="review" class="form-control" rows="5" placeholder="Write client review..." required>{% if review %}{{ review.review }}{% endif %}</textarea>
+                </div>
+
+                <!-- Photo -->
+                <div class="mb-3">
+                    <label class="form-label">Photo</label>
+                    <input type="file" name="photo" class="form-control">
+
+                    {% if review and review.photo %}
+                        <div class="mt-2">
+                            <img src="{{ review.photo.url }}" width="150" class="rounded border">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Rating -->
+                <div class="mb-3">
+                    <label class="form-label">Rating <span class="text-danger">*</span></label>
+                    <select name="rating" class="form-select" required>
+                        <option value="">Select Rating</option>
+                        {% for i in "12345" %}
+                        <option value="{{ i }}" {% if review and review.rating == i|add:0 %}selected{% endif %}>
+                            {{ i }} Star
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {% if review and review.status %}selected{% endif %}>Active</option>
+                        <option value="0" {% if review and not review.status %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if review %} Update Review{% else %} Save Review{% endif %}
+                </button>
+
+                <a href="{% url 'client_review_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

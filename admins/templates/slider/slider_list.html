@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Slider List{% endblock %}
+
+{% block content %}
+
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b>Dashboard</b></a>
+    /
+    <span style="color: #39a5b8;"><b>Slider List</b></span>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <h3>Slider List</h3>
+        <a href="{% url 'slider_create' %}" class="btn btn-primary">+ Add Slider</a>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for slider in sliders %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ slider.title }}</td>
+                        <td>
+                            <img src="{{ slider.image.url }}" width="100" height="60" style="object-fit: cover; border-radius:5px;">
+                        </td>
+                        <td>
+                            {% if slider.status %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                       
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm " type="button" data-bs-toggle="dropdown" style="font-size: 22px;">
+                                    &#8942;   <!-- 3 dots -->
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'slider_update' slider.id %}">
+                                            ✏️ Edit
+                                        </a>
+                                    </li>
+                                     <li>
+                                        <form method="post" action="{% url 'slider_delete' slider.id %}" onsubmit="return confirm('Are you sure you want to delete this slider?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger">🗑️ Delete </button>
+                                        </form>
+                                    <li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No sliders found.</td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

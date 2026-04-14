@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{% if slider %}Update Slider{% else %}Create Slider{% endif %}{% endblock %}
+
+{% block content %}
+<div class="text m-3">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: #6e6e6e;"><b> Dashboard</b></a>
+     /
+    <a href="{% url 'slider_list' %}" style="text-decoration: none; color: #6e6e6e;"><b>Slider List</b></a>
+     /
+    <span style="color: #39a5b8;"><b>{% if slider %}Update Slider{% else %}Create Slider{% endif %}</b></span>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <h3>{% if slider %}Update Slider{% else %}Create Slider{% endif %}</h3>
+    <a href="{% url 'slider_list' %}" class="btn btn-outline-secondary">Back</a>
+</div>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Slider Details</h4>
+            <p>Upload slider image and information</p>
+            <hr>
+
+            <!-- ALERT MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" placeholder="Enter slider title"
+                        value="{% if slider %}{{ slider.title }}{% endif %}" required>
+                </div>
+
+                <!-- Image -->
+                <div class="mb-3">
+                    <label class="form-label">Slider Image <span class="text-danger">*</span></label>
+                    <input type="file" name="image" class="form-control" {% if not slider %}required{% endif %}>
+                    
+                    {% if slider %} 
+                        <div class="mt-2">
+                            <img src="{{ slider.image.url }}" width="200" class="rounded border">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="1" {% if slider and slider.status %}selected{% endif %}>Active</option>
+                        <option value="0" {% if slider and not slider.status %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if slider %} Update Slider{% else %} Save Slider{% endif %}
+                </button>
+                <a href="{% url 'slider_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from admins . models import Slider, ClientReview
 from . models import Category, Product, Cart, Order, CartItem, OrderItem, Wishlist, Supplier, Customer, SystemSettings, Purchase, PurchaseItem, Stock, Profile, Role, Permission, UserProfile
 from . forms import ProductForm, SystemSettingsForm, CustomerForm, PurchaseForm, PurchaseItemForm, RoleForm, PermissionForm
 from django.contrib.auth.decorators import login_required
@@ -30,16 +31,27 @@ def dashboard_redirect(request):
 
 @login_required
 def user_dashboard(request):
-    return render(request, 'product/product_list.html')
+    sliders = Slider.objects.all()
+    return render(request, 'product/product_list.html', {'sliders': sliders})
 
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
+    total_products = Product.objects.count()
+    total_orders = Order.objects.count()
+    total_customers = Customer.objects.count()
+      
+    recent_orders = Order.objects.select_related('user').order_by('-id')[:5]
 
+    context = {
+        'total_products': total_products,
+        'total_orders': total_orders,
+        'total_customers': total_customers,
+        'recent_orders': recent_orders,
+    }
 
-
+    return render(request, 'admin_dashboard.html', context)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -76,6 +88,8 @@ def topbar_list(request, category_id=None):
 
 def product_list(request, category_id=None):
     categorys = Category.objects.all()
+    sliders = Slider.objects.all()
+    reviews = ClientReview.objects.filter(status=True)
     search_query = request.GET.get('q')  
     products = Product.objects.filter(stock__quantity__gt=0)  # ✅ Only products with stock
     # Category filter
@@ -99,7 +113,9 @@ def product_list(request, category_id=None):
         'categorys': categorys,
         'selected_category': category_id,
         'wishlist_products': wishlist_products,
-        'search_query': search_query  
+        'search_query': search_query,
+        'sliders': sliders,
+        'reviews': reviews,
     }
     return render(request, 'product/product_list.html', context)
 
