@@ -69,10 +69,13 @@ def user_slider_list(request):
     sliders = Slider.objects.all()
     return render(request, 'navbar/slider.html', {'sliders': sliders})
     
-def slider_list(request):
-    sliders = Slider.objects.all().order_by('-id')
-    return render(request, 'slider/slider_list.html', {'sliders': sliders})
+# def slider_list(request):
+#     sliders = Slider.objects.all().order_by('-id')
+#     return render(request, 'slider/slider_list.html', {'sliders': sliders})
 
+def slider_list(request):
+    sliders = Slider.objects.filter(status=True).order_by('-id')
+    return render(request, 'slider/slider_list.html', {'sliders': sliders})
 
 # Create Slider
 def slider_create(request):
